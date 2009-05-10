@@ -5,6 +5,9 @@
 //
 // This is the main EDA database class
 
+#ifndef EDA_DATAMEMORY_H_
+#define EDA_DATAMEMORY_H_
+
 #include "data.h"
 
 namespace eda {
@@ -14,8 +17,8 @@ class Memory {
   // The destruction of a Memory object is too much for EDA
 public:
   // Create an empty chunk of memory
-  void AllocateChunk(const string& name_first, int length);
-  void AllocateChunk(uint32 address_32, int length);
+  void AllocateSegment(const string& name_first, int length);
+  void AllocateSegment(uint32_t address_32, int length);
 
   // Save and Load from file
   // These are going to be very hard to write
@@ -26,25 +29,39 @@ public:
 
   // Resolve a memory access
   // Does a lookup in the space_ map
-  Address* MMU(uint32 address_32);
+  Address* get_address_by_location(uint32_t address_32);
+  Address* get_address_by_name(const string& name);
 
   // Commit a changelist to Memory
   // Also add it to the history
   void Commit(Changelist* change);
 
+  // Resolve a complicated string
+  // Output is filled
+  uint32_t ResolveToNumber(int changelist_number, const string& stateless);
+  Address* ResolveToAddress(int changelist_number, const string& stateless);
+
 private:
 // This is the actual backend store for memory segments
 // A pointer to these elements exists in either space_ or named_
 // This could be used for garbage collection
-  vector<vector<Address> > segments_;
+// If the addresses actually lived inside the vector,
+// We couldn't resize segments
+  vector<vector<Address*>* > segments_;
+
+// Creates a segment but makes it inaccessible
+// That's why it's private
+  vector<Address*>* AllocateSegment(int length);
 
 // An address can exist in either of these or both
 // Registers do not exist in space_, just named_
-  map<uint32, Address* > space_;
-  vector<string, Address* > named_;
+  map<uint32_t, vector<Address>* > space_;
+  map<string, Address* > named_;
 
 // The entire history of this memory
   History history_;
 };
 
 }
+
+#endif

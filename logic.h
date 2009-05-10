@@ -1,7 +1,10 @@
 // logic.h -- May 9, 2009
 //    by geohot
 // part of "The Embedded Disassembler"
-//  released under GPLv3, see http://gplv3.fsf.org/
+//  released under GPLv3,
+
+#ifndef EDA_LOGIC_H_
+#define EDA_LOGIC_H_
 
 #include "data.h"
 
@@ -42,3 +45,6 @@ private:
 class Core {
 
 };
+
+#endif
+

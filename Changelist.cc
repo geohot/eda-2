@@ -1,0 +1,34 @@
+// Changelist.cc -- May 10, 2009
+//    by geohot
+// part of "The Embedded Disassembler"
+//  released under GPLv3, see http://gplv3.fsf.org/
+
+#include <vector>
+#include <map>
+
+#include "data_atomic.h"
+
+namespace eda {
+
+void Changelist::add_change(Address* target, uint8_t data) {
+  changes_.insert(make_pair(target, data));
+}
+
+void Changelist::add_read(Address* source) {
+  read_.push_back(source);
+}
+
+map<Address *, uint8_t>::iterator Changelist::get_first_change() {
+  return changes_.begin();
+}
+
+bool Changelist::get_next_change(map<Address*, uint8_t>::iterator* a) {
+  ++(*a);
+  return (*a) != changes_.end();
+}
+
+Address* Changelist::get_owner() {
+  return owner_;
+}
+
+}

@@ -8,6 +8,15 @@
 // These are the lowest level data structures in EDA
 // Currently, thats just the changelists
 
+#ifndef EDA_DATAATOMIC_H_
+#define EDA_DATAATOMIC_H_
+
+#include <string>
+#include <vector>
+#include <map>
+
+using namespace std;
+
 namespace eda {
 
 class Address;    // Can't actually call address
@@ -19,13 +28,14 @@ class StatelessChangelist {
 public:
   // This adds an assignment of the form
   // if(rhs.first)
-  //   lhs = rhs.second;
-  void add_change(const string& lhs, const pair<string, string>& rhs);
+  //   (lhs.first)lhs.second = rhs.second;
+  // lhs.first is number of bits
+  void add_change(const pair<string, int>& lhs, const pair<string, string>& rhs);
 
   // Returns first change in list
-  map<string, pair<string, string> >::iterator get_changes();
+  map<pair<string, int>, pair<string, string> >::iterator get_changes();
 private:
-  map<string, pair<string, string> > changes_;
+  map<pair<string, int>, pair<string, string> > changes_;
 };
 
 // This is a set of instructions to modify explicit memory
@@ -36,7 +46,7 @@ public:
     owner_(owner) {};
   // This adds an assignment of the form
   // lhs = rhs;
-  void add_change(Address* target, uint8 data);
+  void add_change(Address* target, uint8_t data);
 
   void add_read(Address* source);
 
@@ -44,22 +54,32 @@ public:
   Address* get_owner();
 
   // Returns first change in list
-  map<Address*, uint8>::iterator get_changes();
+  map<Address*, uint8_t>::iterator get_first_change();
+  bool get_next_change(map<Address*, uint8_t>::iterator* a);
 private:
   // This is every change the changelist makes
   // Addresses are stored in their pointer form so no moving or renaming
   // affects them
   vector<Address*> read_; // Everything this changelist read
-  map<Address*, uint8> changes_;
+  map<Address*, uint8_t> changes_;
   int changelist_number_;
   Address* owner_;
 };
 
+// O -- opcode
+// o -- subopcode
+// F -- flags
+// C -- condition
+// R -- register
+// I -- immed
+// P -- PC offset immed
+// p -- dereferenced PC offset immed
 class ParsedInstruction {
 public:
   // Is this valid c++?
   // Should be like printf for strings
-  ParsedInstruction(const string& format, ...);
+  ParsedInstruction();
+  void set(const string& format, ...);
 private:
 // It'd be sweet if this was a string with formatting
   string format_;
@@ -67,3 +87,5 @@ private:
 };
 
 }
+
+#endif

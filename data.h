@@ -6,6 +6,9 @@
 // This contains all of EDA's data classes
 // I can't include Logic or Presentation without screwing up
 
+#ifndef EDA_DATA_H_
+#define EDA_DATA_H_
+
 #include <map>
 
 #include "data_atomic.h"
@@ -42,24 +45,32 @@ private:
 // Many methods don't have much signifance to them
 class Address {
 public:
+  Address() {
+    next_ = 0;
+  }
   // Address accessor functions
   // All return pointer to address after last one got
   // NULL if said address doesn't exist
-  Address* get8(uint8* data);
-  Address* get16(uint16* data);
-  Address* get32(uint32* data);
+  Address* get8(int changelist_number, uint8_t* data);
+  Address* get16(int changelist_number, uint16_t* data);
+  Address* get32(int changelist_number, uint32_t* data);
   // Address mutator functions are only to be called from commit
+  Address* set8(int changelist_number, uint8_t data);
+  Address* set16(int changelist_number, uint16_t data);
+  Address* set32(int changelist_number, uint32_t data);
 
   // Operators to walk you through the address list
-  Address* operator++ (Address*);
-  Address* operator-- (Address*);
+  //Address* operator++ (Address*);
+  //Address* operator-- (Address*);
 
   // Names can't start with numbers, enforce this
   bool set_name(const string& name);
 
+  void set_next(Address* next);
+
 private:
   // Maps changelistNumbers to 8-bit datas
-  map<int, uint8> datamap_;
+  map<int, uint8_t> datamap_;
 
   // Name of this address
   string name_;
@@ -69,7 +80,7 @@ private:
 
   // These allow for traversing the address space
   // And let functions like get32 work
-  Address* prev_;
+  //Address* prev_;
   Address* next_;
 };
 
@@ -94,3 +105,5 @@ private:
 
 
 }
+
+#endif

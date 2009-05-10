@@ -3,6 +3,12 @@
 // part of "The Embedded Disassembler"
 //  released under GPLv3, see http://gplv3.fsf.org/
 
+#ifndef EDA_INSTRUCTIONFACTORYARM_H_
+#define EDA_INSTRUCTIONFACTORYARM_H_
+
+#include <string>
+using namespace std;
+
 namespace ARM {
 const string conditions[16] = { "EQ", "NE", "HS", "LO", "MI", "PL",
   "VS", "VC", "HI", "LS", "GE", "LT", "GT", "LE", "", "" };
@@ -45,7 +51,19 @@ const string opcodes_absolute[16] = {
 // NF is no first(Rn)
 //AND XOR SUB RSB    ADD ADC SBC  RSC   TST CMP CMN ORR MOV BIC  MVN
 //                        C   C    C    NS  NS  NS      NF       NF
-  "&","^","-","*-1+","+","+","-","*-1+","&","-","+","|","", "&~",""
+  "&","^","-","*-1+","+","+","-","*-1+","&","-","+","|","", "&~","~"
 };
 
+#define F_C 1
+#define F_NS 2
+#define F_NF 4
+
+const int opcodes_flags[16] = {
+  0,0,0,0,0,F_C,F_C,F_C,F_NS,F_NS,F_NS,0,F_NF,0,F_NF
+};
+
+const string shifts_absolute[4] = { "<<", ">>", ">>>", ">/>" };
+
 }
+
+#endif
