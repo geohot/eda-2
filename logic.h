@@ -6,8 +6,9 @@
 #ifndef EDA_LOGIC_H_
 #define EDA_LOGIC_H_
 
-#include "data.h"
+#include "data_memory.h"
 
+namespace eda {
 
 class MemoryManager {
 
@@ -18,12 +19,11 @@ class MemoryManager {
 // This also kills the ARM/Thumb problem
 // EDA plugins are extensions to this
 class InstructionFactory {
-  InstructionFactory() = 0;
-
+public:
   // Parses an instruction
   // instruction should be null when passed in
   // Returns the address after the end of this instruction
-  virtual static Address* process(Address* start, Instruction* instruction);
+  virtual Address* process(Address* start, Instruction* instruction) = 0;
 };
 
 // This creates changelists
@@ -31,11 +31,12 @@ class InstructionFactory {
 class ChangelistFactory {
 // out should be null when passed in to all
 public:
+  ChangelistFactory();
   // Used for loading from files or straight web data
-  bool CreateFromInput(const string& data, Address* start, Changelist* out);
+  Changelist* CreateFromInput(Address* owner, const string& data, Address* start);
   // Used by the Core
-  bool CreateFromStatelessChangelist(StatelessChangelist* in,
-                                     Memory* state, Changelist* out);
+  Changelist* CreateFromStatelessChangelist(Address* owner, StatelessChangelist* in,
+                                     Memory* state);
 private:
   // This is incremented every time a changelist is created
   // It starts out at zero
@@ -45,6 +46,8 @@ private:
 class Core {
 
 };
+
+}
 
 #endif
 

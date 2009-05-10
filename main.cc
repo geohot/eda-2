@@ -9,29 +9,38 @@
 #include <iostream>
 #include <string>
 
-//#include "logic.h"
+#include "logic.h"
 #include "data_memory.h"
 #include "util.h"
 
 using namespace std;
 using namespace eda;
 
-//ChangelistFactory* cf;
+ChangelistFactory* cf;
 Memory* m;
 
-/*void load_file(const string& filename, uint32_t address) {
+Address* me;
+
+void load_file(const string& filename, uint32_t address) {
+  INFO << "loading file, " << filename << endl;
   string data;
-  file_to_string(filename &data);
+  if(!file_to_string(filename, &data)) {
+    LOG << "File read error" << endl;
+  }
+  INFO << "file read, " << data.size() << endl;
   m->AllocateSegment(address, data.size());
-  Changelist* c;
-  cf->CreateFromInput(data, m->get_address_by_location(address), c);
+  INFO << "segment allocated" << endl;
+  Changelist* c = cf->CreateFromInput(me, data, m->get_address_by_location(address));
+  INFO << "changelist " << c->get_changelist_number() << " created, "<< c->size() << endl;
   m->Commit(c);
-}*/
+  INFO << "committed" << endl;
+}
 
 int main(int argc, char* argv[]) {
-  //cf = new ChangelistFactory();
+  cf = new ChangelistFactory();
   m = new Memory();
-  //load_file("bootrom", 0x400000);
+  me = new Address();
+  load_file("bootrom", 0x400000);
 
   while (1) {
     string cmd;
@@ -40,6 +49,6 @@ int main(int argc, char* argv[]) {
 
     uint32_t output = m->ResolveToNumber(999, cmd);
 
-    cout << output << endl;
+    cout << std::hex << output << endl;
   }
 }

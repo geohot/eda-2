@@ -7,6 +7,7 @@ PROJECT(eda-reversing)
 SET(EDA_SRCS
 ./Address.cc
 ./Changelist.cc
+./ChangelistFactory.cc
 #./InstructionFactoryARM.cc
 ./Memory.cc
 ./util.cc

@@ -38,6 +38,8 @@ private:
   map<pair<string, int>, pair<string, string> > changes_;
 };
 
+#define ChangelistIterator map<Address*, uint8_t>::iterator
+
 // This is a set of instructions to modify explicit memory
 class Changelist {
 public:
@@ -52,6 +54,9 @@ public:
 
   // owner_ accessor
   Address* get_owner();
+
+  int get_changelist_number();
+  int size();
 
   // Returns first change in list
   map<Address*, uint8_t>::iterator get_first_change();

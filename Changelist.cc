@@ -18,7 +18,7 @@ void Changelist::add_read(Address* source) {
   read_.push_back(source);
 }
 
-map<Address *, uint8_t>::iterator Changelist::get_first_change() {
+ChangelistIterator Changelist::get_first_change() {
   return changes_.begin();
 }
 
@@ -29,6 +29,14 @@ bool Changelist::get_next_change(map<Address*, uint8_t>::iterator* a) {
 
 Address* Changelist::get_owner() {
   return owner_;
+}
+
+int Changelist::get_changelist_number() {
+  return changelist_number_;
+}
+
+int Changelist::size() {
+  return changes_.size();
 }
 
 }

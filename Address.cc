@@ -50,6 +50,10 @@ void Address::set_next(Address* next) {
   next_ = next;
 }
 
+Address* Address::get_next() {
+  return next_;
+}
+
 bool Address::set_name(const string& name) {
   name_ = name;
 }

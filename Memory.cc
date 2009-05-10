@@ -22,7 +22,11 @@ void Memory::AllocateSegment(const string& name, int length) {
 }
 
 vector<Address*>* Memory::AllocateSegment(int length) {
-  vector<Address*>* ts = new vector<Address*>(length, new Address);
+  vector<Address*>* ts = new vector<Address*>(length);
+
+  for (int l = 0; l < length; l++) {
+    (*ts)[l] = new Address();
+  }
 
   // Setup the next pointers
   for (int l = 0; l < length-1; l++) {
@@ -145,7 +149,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
 
     // Run the operation
     if (operate) {
-      INFO << "EVAL: " << retval << " " << oper << " " << lastval << endl;
+      //INFO << "EVAL: " << retval << " " << oper << " " << lastval << endl;
       switch (oper) {
         case OPER_ADD: retval+=lastval; break;
         case OPER_SUB: retval-=lastval; break;
@@ -176,6 +180,17 @@ Address* Memory::ResolveToAddress(int changelist_number, const string& stateless
     return get_address_by_name(stateless.substr(1, stateless.size()-2));
   else
     return get_address_by_location(stoi(stateless));
+}
+
+//This is the commit function
+//Add History functionality, and do it soon
+void Memory::Commit(Changelist* c) {
+  ChangelistIterator it = c->get_first_change();
+  do {
+    //INFO << "committing: " << it->second << endl;
+    // OMG, History code
+    it->first->set8(c->get_changelist_number(), it->second);
+  } while(c->get_next_change(&it));
 }
 
 }

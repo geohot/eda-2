@@ -67,6 +67,7 @@ public:
   bool set_name(const string& name);
 
   void set_next(Address* next);
+  Address* get_next();
 
 private:
   // Maps changelistNumbers to 8-bit datas
