@@ -38,7 +38,9 @@ vector<Address*>* Memory::AllocateSegment(int length) {
 }
 
 Address* Memory::get_address_by_location(uint32_t address_32) {
-  map<uint32_t, vector<Address*>*>::iterator a = (--space_.upper_bound(address_32));
+  map<uint32_t, vector<Address*>*>::iterator a = space_.upper_bound(address_32);
+  if(a == space_.begin()) return NULL;
+  --a;
   if(a->first + a->second->size() > address_32)
     return (*a->second)[address_32 - a->first];
   else
@@ -68,6 +70,7 @@ enum {
 // Recursive function for resolving stateless strings
 // Should really return a vector of things it accessed too
 uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless) {
+  INFO << "resolving " << stateless << endl;
   // Segments are [..], (..), and `..`
   //   [..] is get_address_by_location with implied (..) and deref
   //   (..) is ResolveToNumber
@@ -80,6 +83,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
   uint32_t lastval, retval=0;
   int oper = OPER_ADD;
   bool error = false;
+  Address* addr;
   while(error == false && string_location < stateless.length()) {
     bool operate = false;
     // Skip whitespace
@@ -90,8 +94,15 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
     switch (stateless[string_location]) {
       case '[':
         next_string_location = stateless.find(']', string_location);
-        ResolveToAddress(changelist_number, stateless.substr(string_location+1, next_string_location-string_location-1))->get32(changelist_number, &lastval);
-        operate = true;
+        addr = ResolveToAddress(changelist_number, stateless.substr(string_location+1, next_string_location-string_location-1));
+        if(addr != NULL) {
+          addr->get32(changelist_number, &lastval);
+          operate = true;
+        }
+        else {
+          LOG << "memory not found: " << stateless.substr(string_location+1, next_string_location-string_location-1) << endl;
+          error = true;
+        }
         break;
       case '(':
         next_string_location = stateless.find(')', string_location);
@@ -170,6 +181,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
   if(error == true) {
     LOG << "Error in parser: " << stateless << "[" << string_location << "]" << endl;
   }
+  INFO << "got " << std::hex << retval << endl;
   return retval;
 }
 

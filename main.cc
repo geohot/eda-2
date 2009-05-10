@@ -49,6 +49,6 @@ int main(int argc, char* argv[]) {
 
     uint32_t output = m->ResolveToNumber(999, cmd);
 
-    cout << std::hex << output << endl;
+    cout << std::hex << "0x" << output << endl;
   }
 }
