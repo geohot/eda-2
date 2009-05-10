@@ -12,13 +12,13 @@ namespace eda {
 
 void Memory::AllocateSegment(uint32_t address_32, int length) {
   vector<Address*>* ts = AllocateSegment(length);
-  space_.insert(address_32, ts);
+  space_.insert(make_pair(address_32, ts));
 }
 
 void Memory::AllocateSegment(const string& name, int length) {
   vector<Address*>* ts = AllocateSegment(length);
   (*ts)[0]->set_name(name);
-  named_.insert(name, (*ts)[0]);
+  named_.insert(make_pair(name, (*ts)[0]));
 }
 
 vector<Address*>* Memory::AllocateSegment(int length) {
@@ -42,7 +42,7 @@ Address* Memory::get_address_by_location(uint32_t address_32) {
 }
 
 Address* Memory::get_address_by_name(const string& name) {
-  map<string, Address*>::iterator a = named_find(name);
+  map<string, Address*>::iterator a = named_.find(name);
   if(a == named_.end())
     return NULL;
   else
@@ -58,6 +58,7 @@ enum {
   OPER_LSR,
   OPER_ASR,
   OPER_ROR,
+  OPER_ROL,
 };
 
 // Recursive function for resolving stateless strings
@@ -75,8 +76,8 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
   uint32_t lastval, retval=0;
   int oper = OPER_ADD;
   bool error = false;
-  while(error == false && string_location != stateless.length()) {
-
+  while(error == false && string_location < stateless.length()) {
+    bool operate = false;
     // Skip whitespace
     while (stateless[string_location] == ' ') string_location++;
 
@@ -85,14 +86,17 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
     switch (stateless[string_location]) {
       case '[':
         next_string_location = stateless.find(']', string_location);
-        lastval = ResolveToAddress(changelist_number, stateless.substr(string_location+1, next_string_location))->get_32(changelist_number);
+        ResolveToAddress(changelist_number, stateless.substr(string_location+1, next_string_location-string_location-1))->get32(changelist_number, &lastval);
+        operate = true;
         break;
       case '(':
         next_string_location = stateless.find(')', string_location);
-        lastval = ResolveToNumber(changelist_number, stateless.substr(string_location+1, next_string_location));
+        lastval = ResolveToNumber(changelist_number, stateless.substr(string_location+1, next_string_location-string_location-1));
+        operate = true;
         break;
       case '`':
         // This can't resolve addresses
+        LOG << "can't resolve addresses" << endl;
         error = true;
         break;
       case '+': oper = OPER_ADD; break;
@@ -103,50 +107,64 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
       case '>':
         if (stateless[++next_string_location] == '<') {
           oper = OPER_LSL; break;
-        } else if(stateless[++next_string_location] == '>') {
+        } else if(stateless[next_string_location] == '>') {
           if(stateless[next_string_location+1] == '>') {
             ++next_string_location;
             oper = OPER_ASR; break;
           } else {
             oper = OPER_LSR; break;
           }
-        } else if(stateless[++next_string_location] == '/' && stateless[++next_string_location] == '>') {
+        } else if(stateless[next_string_location] == '/' && stateless[++next_string_location] == '>') {
           oper = OPER_ROR; break;
+        } else if(stateless[next_string_location] == '<') {
+          oper = OPER_ROL; break;
         } else {
+          LOG << "unknown operator" << endl;
           error = true;
           break;
         }
       default:    // Numbers
-        while((stateless[next_string_location] >= '0' && stateless[next_string_location] <= '9') ||
+        while(stateless.size() != next_string_location &&
+               ((stateless[next_string_location] >= '0' && stateless[next_string_location] <= '9') ||
                 (stateless[next_string_location] >= 'a' && stateless[next_string_location] <= 'f') ||
                 (stateless[next_string_location] >= 'A' && stateless[next_string_location] <= 'F') ||
-                stateless[next_string_location] == 'x') {
+                 stateless[next_string_location] == 'x')) {
           next_string_location++;
         }
-        if(next_string_location != string_location)
+        if(next_string_location != string_location) {
           lastval = stoi(stateless.substr(string_location, next_string_location-string_location));
-        else
+          next_string_location--;
+          operate = true;
+        }
+        else {
           error = true;
+          LOG << "bad character" << endl;
+        }
+        break;
     }
 
     // Run the operation
-    switch (oper) {
-      case OPER_ADD: retval+=lastval; break;
-      case OPER_SUB: retval-=lastval; break;
-      case OPER_MUL: retval*=lastval; break;
-      case OPER_DIV: retval/=lastval; break;
-      case OPER_LSL: retval<<=lastval; break;
-      case OPER_LSR: retval>>=lastval; break;
-      case OPER_ASR: retval>>=lastval; break;
-      case OPER_ROR: retval=ror(retval, lastval); break;
-      default:
-        error = true;
+    if (operate) {
+      INFO << "EVAL: " << retval << " " << oper << " " << lastval << endl;
+      switch (oper) {
+        case OPER_ADD: retval+=lastval; break;
+        case OPER_SUB: retval-=lastval; break;
+        case OPER_MUL: retval*=lastval; break;
+        case OPER_DIV: retval/=lastval; break;
+        case OPER_LSL: retval<<=lastval; break;
+        case OPER_LSR: retval>>=lastval; break;
+        case OPER_ASR: retval>>=lastval; break;
+        case OPER_ROL: retval=rol(retval, lastval); break;
+        case OPER_ROR: retval=ror(retval, lastval); break;
+        default:
+          error = true;
+      }
     }
 
     string_location = next_string_location+1;
   }
   if(error == true) {
-    LOG << "Error in parser: " << stateless << "[" << string_location << "]";
+    LOG << "Error in parser: " << stateless << "[" << string_location << "]" << endl;
   }
   return retval;
 }
@@ -154,7 +172,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
 Address* Memory::ResolveToAddress(int changelist_number, const string& stateless) {
   // Supports numbers and `names`
   // No operator support yet
-  if(stateless[string_location] == '`')
+  if(stateless[0] == '`')
     return get_address_by_name(stateless.substr(1, stateless.size()-2));
   else
     return get_address_by_location(stoi(stateless));

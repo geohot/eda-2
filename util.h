@@ -7,17 +7,18 @@
 #define EDA_UTIL_H_
 
 #include <iostream>
+#include <string>
 
 namespace eda {
 
 // Returns things like 9 and 0x4F
-string immed(uint32 data);
+std::string immed(uint32_t data);
 // Signed
-string immed_signed(int32 data);
+std::string immed_signed(int32_t data);
 
-uint32 stoi(const string& num);
+uint32_t stoi(const std::string& num);
 
-bool file_to_string(const string& filename, string* out);
+bool file_to_string(const std::string& filename, std::string* out);
 
 // LOG(INFO)
 // LOG(ERROR)
@@ -28,10 +29,14 @@ bool file_to_string(const string& filename, string* out);
 #define THIS_FILE ((strrchr(__FILE__, '/') ?: __FILE__ - 1) + 1)
 #endif
 
-#define LOG std::cout << std::endl << std::hex << THIS_FILE << "--" << __PRETTY_FUNCTION__ << ": "
+//#define LOG std::cout << std::endl << std::hex << THIS_FILE << "--" << __PRETTY_FUNCTION__ << ": "
+#define LOG std::cout << std::dec << THIS_FILE << "--" << __PRETTY_FUNCTION__ << ": "
+#define INFO std::cout << std::dec << THIS_FILE << ": "
 
-inline uint32 rol(uint32 data, int len);
-inline uint32 ror(uint32 data, int len);
+//inline uint32_t rol(uint32_t data, int len);
+#define rol(data, len) (data << len) | (data >> (32-len))
+//inline uint32_t ror(uint32_t data, int len);
+#define ror(data, len) (data >> len) | (data << (32-len))
 
 }
 

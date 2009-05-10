@@ -55,7 +55,7 @@ private:
 
 // An address can exist in either of these or both
 // Registers do not exist in space_, just named_
-  map<uint32_t, vector<Address>* > space_;
+  map<uint32_t, vector<Address*>* > space_;
   map<string, Address* > named_;
 
 // The entire history of this memory

@@ -9,14 +9,14 @@
 #include <iostream>
 #include <string>
 
-#include "logic.h"
+//#include "logic.h"
 #include "data_memory.h"
 #include "util.h"
 
 using namespace std;
 using namespace eda;
 
-ChangelistFactory* cf;
+//ChangelistFactory* cf;
 Memory* m;
 
 /*void load_file(const string& filename, uint32_t address) {
@@ -35,10 +35,10 @@ int main(int argc, char* argv[]) {
 
   while (1) {
     string cmd;
+    cout << "EDA> ";
     getline(cin, cmd);
 
-    uint32_t output;
-    m->Resolve(999, cmd, &output);
+    uint32_t output = m->ResolveToNumber(999, cmd);
 
     cout << output << endl;
   }
