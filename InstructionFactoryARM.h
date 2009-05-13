@@ -9,7 +9,20 @@
 #include <string>
 using namespace std;
 
+#include "logic.h"
+
+#include "data.h"
+
+using namespace eda;
+
+class InstructionFactoryARM : public InstructionFactory {
+public:
+  Address* Process(Address* start);
+  void InitRegisters(Memory* m);
+};
+
 namespace ARM {
+
 const string conditions[16] = { "EQ", "NE", "HS", "LO", "MI", "PL",
   "VS", "VC", "HI", "LS", "GE", "LT", "GT", "LE", "", "" };
 const string registers[18] = { "R0", "R1", "R2", "R3", "R4", "R5", "R6",

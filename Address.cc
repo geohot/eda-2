@@ -33,6 +33,7 @@ Address* Address::get32(int changelist_number, uint32_t* data) {
 
 Address* Address::set8(int changelist_number, uint8_t data) {
   datamap_[changelist_number] = data;
+  return next_;
 }
 
 Address* Address::set16(int changelist_number, uint16_t data) {

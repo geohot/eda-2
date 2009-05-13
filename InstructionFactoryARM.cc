@@ -7,21 +7,29 @@
 
 #include "InstructionFactoryARM.h"
 
+#include "data_memory.h"
 #include "data.h"
+
+#include "util.h"
 
 using namespace eda;
 
 using namespace ARM;
 
+void InstructionFactoryARM::InitRegisters(Memory* m) {
+  for (int i = 0; i < 18; i++)
+    m->AllocateSegment(registers[i], 4);
+}
+
 // I think this is my fifth one of these...haha
 // This is going to be the simplest
 // Extract everything first
-virtual static Address* InstructionFactoryARM::process(
-  Address* start, Instruction* instruction) {
+
+Address* InstructionFactoryARM::Process(Address* start) {
   StatelessChangelist* change = new StatelessChangelist();
 
-  uint32 opcode;
-  Address* end = start->get32(opcode);
+  uint32_t opcode;
+  Address* end = start->get32(0, &opcode);  // 0 is a shortcut
 
   // Extract register data
   string Rn = registers[ (opcode >> 16) & 0xF ];
@@ -63,6 +71,8 @@ virtual static Address* InstructionFactoryARM::process(
 
   int cmdint = (opcode >> 25) & 3;
 
+  string changesource = "";
+
   switch (cmdint) {
     case 0:   // DPIS + DPRS
     case 1:   // DPI
@@ -71,8 +81,6 @@ virtual static Address* InstructionFactoryARM::process(
       args.push_back(((opcode >> 20) & 1)?"S":"");
       args.push_back(condXX);
       args.push_back(Rd);
-
-      string changesource = "";
 
       if (!(opint & F_NF)) { // First register
         formatstring += "R, ";
@@ -100,8 +108,7 @@ virtual static Address* InstructionFactoryARM::process(
         args.push_back(immed8);
         changesource += immed8;
       }
-      change->add_change(make_pair("`"+Rd+"`", 32),
-                         make_pair(cond, changesource));
+      change->add_change("`"+Rd+"`", 32, cond, changesource);
       break;
     case 2:   //LSIO
     case 3:   //LSRO
@@ -112,8 +119,8 @@ virtual static Address* InstructionFactoryARM::process(
       args.push_back(Rd);
       args.push_back(Rn);
 
-      string changesource = "[";
-      changesource += "`"+Rn+"`";
+      changesource = "[";
+      changesource += "[`"+Rn+"`]";
       if(sign) changesource += "+";
       else changesource += "-";
       if (cmdint == 2) {
@@ -130,12 +137,12 @@ virtual static Address* InstructionFactoryARM::process(
         changesource += "[`"+Rm+"`]" + shift + immedshift;
       }
       changesource += "]";
-      if(byte) {
-        change->add_change(make_pair("[`"+Rd+"`]", 8),
-                           make_pair(cond, changesource));
-      } else {
-        change->add_change(make_pair("[`"+Rd+"`]", 32),
-                           make_pair(cond, changesource));
+      if(load) {
+        if(byte) {
+          change->add_change("`"+Rd+"`", 8, cond, changesource);
+        } else {
+          change->add_change("`"+Rd+"`", 32, cond, changesource);
+        }
       }
       break;
     case 4: //LSM
@@ -148,11 +155,9 @@ virtual static Address* InstructionFactoryARM::process(
       args.push_back(cond);
       args.push_back(immed24);
 
-      change->add_change(make_pair("`PC`", 32),
-                         make_pair(cond, "[`PC`]+"+immed24));
+      change->add_change("`PC`", 32, cond, "[`PC`]+"+immed24);
       if(link) {
-        change->add_change(make_pair("`LR`", 32),
-                           make_pair(cond, "[`PC`]+4"));
+        change->add_change("`LR`", 32, cond, "[`PC`]+4");
       }
       break;
   }
@@ -160,6 +165,6 @@ virtual static Address* InstructionFactoryARM::process(
 
   ParsedInstruction* parsed = new ParsedInstruction(formatstring, args);
 
-  instruction = new Instruction(parsed, change, start, 4);
+  start->set_instruction(new Instruction(parsed, change, start, 4));
   return end;
 }

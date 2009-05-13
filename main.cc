@@ -15,6 +15,8 @@
 
 #include "debug.h"
 
+#include "InstructionFactoryARM.h"
+
 using namespace std;
 using namespace eda;
 
@@ -44,6 +46,13 @@ int main(int argc, char* argv[]) {
   me = m->AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
   load_file("bootrom", 0x400000);
 
+  InstructionFactoryARM iarm;
+  iarm.InitRegisters(m);
+  Address* PC = m->ResolveToAddress(0,"`PC`");
+
+  INFO << "got PC" << endl;
+  PC->set32(1, 0x400008);
+
   while (1) {
     string cmd;
     cout << "EDA> ";
@@ -60,12 +69,23 @@ int main(int argc, char* argv[]) {
         statelesscl.add_change(ls, 32, "1", rs);
       }
       if(statelesscl.get_size() > 0) {
+        DebugPrint(&statelesscl);
         Changelist* c = cf->CreateFromStatelessChangelist(me, statelesscl, m);
         //DebugPrint(c);
         m->Commit(c);
       }
     } else if(cmd.substr(0,7) == "printcl") {
       DebugPrint(m->history_.get_changelist(stoi(cmd.substr(8))));
+    } else if(cmd.substr(0,1) == "r") {
+      Address* a = m->ResolveToAddress(0, cmd.substr(cmd.find_first_of(' ')+1));
+      Changelist* c = cf->CreateFromStatelessChangelist(a, *(a->get_instruction()->change_), m);
+      DebugPrint(c);
+      m->Commit(c);
+    } else if(cmd.substr(0,1) == "d") {
+      Address* a = m->ResolveToAddress(0, cmd.substr(cmd.find_first_of(' ')+1));
+      iarm.Process(a);
+      DebugPrint(a->get_instruction()->parsed_);
+      DebugPrint(a->get_instruction()->change_);
     } else if(cmd.substr(0,7) == "history") {
       Address* a = m->ResolveToAddress(0, cmd.substr(8));
       if (a == NULL) {

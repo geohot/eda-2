@@ -26,9 +26,14 @@ namespace eda {
 // Instruction is no longer extended, InstructionFactory is
 // Don't put the commit logic here, Instruction is a dumb storage class
 class Instruction {
-  Instruction(ParsedInstruction*, StatelessChangelist*, Address*, int length);
+public:
+  Instruction(ParsedInstruction* parser, StatelessChangelist* change, Address* start, int length) :
+    parsed_(parser),
+    change_(change),
+    start_(start),
+    length_(length) {}
   // This should have a destructor that destroys parsed_ and stateless_
-private:
+//private:
   ParsedInstruction* parsed_;
   StatelessChangelist* change_;
   Address* start_;
@@ -46,7 +51,8 @@ private:
 class Address {
 public:
   Address() {
-    next_ = 0;
+    next_ = NULL;
+    instruction_ = NULL;
     datamap_.insert(make_pair(0,0));
     name_ = "";
   }
@@ -67,6 +73,9 @@ public:
 
   // Names can't start with numbers, enforce this
   bool set_name(const string& name);
+
+  void set_instruction(Instruction* i) { instruction_ = i; }
+  Instruction* get_instruction() { return instruction_; }
 
   void set_next(Address* next);
   Address* get_next();

@@ -13,6 +13,7 @@ namespace eda {
 
 //DebugPrint is overloaded to handle various EDA types
 void DebugPrint(Changelist* a);
+void DebugPrint(ParsedInstruction* a);
+void DebugPrint(StatelessChangelist* a);
 void DebugPrint(vector<int>* v);
-
 }

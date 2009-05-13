@@ -89,9 +89,8 @@ class ParsedInstruction {
 public:
   // Is this valid c++?
   // Should be like printf for strings
-  ParsedInstruction();
-  void set(const string& format, ...);
-private:
+  ParsedInstruction(const string& format, const vector<string>& args) : format_(format), args_(args) {}
+//private:
 // It'd be sweet if this was a string with formatting
   string format_;
   vector<string> args_;

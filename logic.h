@@ -23,7 +23,7 @@ public:
   // Parses an instruction
   // instruction should be null when passed in
   // Returns the address after the end of this instruction
-  virtual Address* process(Address* start, Instruction* instruction) = 0;
+  virtual Address* Process(Address* start) = 0;
 };
 
 // This creates changelists

@@ -38,3 +38,22 @@ bool eda::file_to_string(const std::string& filename, std::string* out) {
   delete [] dat;
   return read == size;
 }
+
+
+// Returns things like 9 and 0x4F
+string eda::immed(uint32_t data) {
+  ostringstream o;
+  if(data < 10) o << data;
+  else o << hex << "0x" << data;
+  return o.str();
+}
+// Signed
+string eda::immed_signed(int32_t data) {
+  ostringstream o;
+  if(data<0) {
+    o << "-";
+    data = data * -1;
+  }
+  o << immed(data);
+  return o.str();
+}

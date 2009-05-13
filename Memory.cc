@@ -3,6 +3,7 @@
 // part of "The Embedded Disassembler"
 //  released under GPLv3, see http://gplv3.fsf.org/
 
+#include <sstream>
 #include <vector>
 
 #include "data_memory.h"
@@ -12,6 +13,14 @@ namespace eda {
 
 Address* Memory::AllocateSegment(uint32_t address_32, int length) {
   vector<Address*>* ts = AllocateSegment(length);
+
+//For debugging, give everything a name
+  for (int l = 0; l < length; l++) {
+    ostringstream name;
+    name << "loc_" << hex << (address_32+l);
+    (*ts)[l]->set_name(name.str());
+  }
+
   space_.insert(make_pair(address_32, ts));
   return (*ts)[0];
 }
@@ -95,7 +104,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
 
     switch (stateless[string_location]) {
       case '[':
-        next_string_location = stateless.find(']', string_location);
+        next_string_location = stateless.rfind(']'); //, string_location);
         addr = ResolveToAddress(changelist_number, stateless.substr(string_location+1, next_string_location-string_location-1));
         if(addr != NULL) {
           addr->get32(changelist_number, &lastval);
@@ -107,7 +116,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
         }
         break;
       case '(':
-        next_string_location = stateless.find(')', string_location);
+        next_string_location = stateless.rfind(')'); //, string_location);
         lastval = ResolveToNumber(changelist_number, stateless.substr(string_location+1, next_string_location-string_location-1));
         operate = true;
         break;
@@ -194,7 +203,7 @@ Address* Memory::ResolveToAddress(int changelist_number, const string& stateless
   if(stateless[0] == '`')
     return get_address_by_name(stateless.substr(1, stateless.find_first_of('`',1) - 1));
   else
-    return get_address_by_location(stoi(stateless));
+    return get_address_by_location(ResolveToNumber(changelist_number, stateless));
 }
 
 //This is the commit function
