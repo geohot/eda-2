@@ -15,5 +15,5 @@ SET(EDA_SRCS
 #INCLUDE_DIRECTORIES(./include/)
 ADD_LIBRARY(eda_lib ${EDA_SRCS})
 ADD_EXECUTABLE(eda main.cc)
-TARGET_LINK_LIBRARIES(eda eda_lib pthread)
+TARGET_LINK_LIBRARIES(eda eda_lib)
 
