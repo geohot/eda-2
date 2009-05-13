@@ -35,7 +35,7 @@ public:
   // Used for loading from files or straight web data
   Changelist* CreateFromInput(Address* owner, const string& data, Address* start);
   // Used by the Core
-  Changelist* CreateFromStatelessChangelist(Address* owner, StatelessChangelist* in,
+  Changelist* CreateFromStatelessChangelist(Address* owner, StatelessChangelist& in,
                                      Memory* state);
 private:
   // This is incremented every time a changelist is created

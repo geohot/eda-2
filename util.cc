@@ -5,8 +5,10 @@
 
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 #include "util.h"
+#include "data.h"
 
 using namespace std;
 using namespace eda;

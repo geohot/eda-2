@@ -30,7 +30,8 @@ bool file_to_string(const std::string& filename, std::string* out);
 #endif
 
 //#define LOG std::cout << std::endl << std::hex << THIS_FILE << "--" << __PRETTY_FUNCTION__ << ": "
-#define LOG std::cout << std::dec << THIS_FILE << "--" << __PRETTY_FUNCTION__ << ": "
+//#define LOG std::cout << std::dec << THIS_FILE << "--" << __PRETTY_FUNCTION__ << ": "
+#define LOG std::cout << std::dec << THIS_FILE << "--" << __FUNCTION__  << ": "
 #define INFO std::cout << std::dec << THIS_FILE << ": "
 
 //inline uint32_t rol(uint32_t data, int len);

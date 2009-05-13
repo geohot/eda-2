@@ -10,15 +10,17 @@
 
 namespace eda {
 
-void Memory::AllocateSegment(uint32_t address_32, int length) {
+Address* Memory::AllocateSegment(uint32_t address_32, int length) {
   vector<Address*>* ts = AllocateSegment(length);
   space_.insert(make_pair(address_32, ts));
+  return (*ts)[0];
 }
 
-void Memory::AllocateSegment(const string& name, int length) {
+Address* Memory::AllocateSegment(const string& name, int length) {
   vector<Address*>* ts = AllocateSegment(length);
   (*ts)[0]->set_name(name);
   named_.insert(make_pair(name, (*ts)[0]));
+  return (*ts)[0];
 }
 
 vector<Address*>* Memory::AllocateSegment(int length) {
@@ -188,8 +190,9 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
 Address* Memory::ResolveToAddress(int changelist_number, const string& stateless) {
   // Supports numbers and `names`
   // No operator support yet
+  INFO << "lookup address: \"" << stateless << "\"" << endl;
   if(stateless[0] == '`')
-    return get_address_by_name(stateless.substr(1, stateless.size()-2));
+    return get_address_by_name(stateless.substr(1, stateless.find_first_of('`',1) - 1));
   else
     return get_address_by_location(stoi(stateless));
 }
@@ -197,12 +200,15 @@ Address* Memory::ResolveToAddress(int changelist_number, const string& stateless
 //This is the commit function
 //Add History functionality, and do it soon
 void Memory::Commit(Changelist* c) {
+  INFO << "commiting: " << c->get_changelist_number() << endl;
   ChangelistIterator it = c->get_first_change();
   do {
     //INFO << "committing: " << it->second << endl;
     // OMG, History code
     it->first->set8(c->get_changelist_number(), it->second);
   } while(c->get_next_change(&it));
+
+  history_.AddCommited(c);
 }
 
 }

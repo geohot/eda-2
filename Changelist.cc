@@ -5,6 +5,8 @@
 
 #include <vector>
 #include <map>
+#include <iostream>
+#include <iomanip>
 
 #include "data_atomic.h"
 
@@ -19,7 +21,10 @@ void Changelist::add_read(Address* source) {
 }
 
 ChangelistIterator Changelist::get_first_change() {
-  return changes_.begin();
+  if(changes_.size() > 0)
+    return changes_.begin();
+  else
+    return NULL;
 }
 
 bool Changelist::get_next_change(map<Address*, uint8_t>::iterator* a) {
@@ -35,7 +40,7 @@ int Changelist::get_changelist_number() {
   return changelist_number_;
 }
 
-int Changelist::size() {
+int Changelist::get_size() {
   return changes_.size();
 }
 

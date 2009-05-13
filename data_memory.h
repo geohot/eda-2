@@ -17,8 +17,8 @@ class Memory {
   // The destruction of a Memory object is too much for EDA
 public:
   // Create an empty chunk of memory
-  void AllocateSegment(const string& name_first, int length);
-  void AllocateSegment(uint32_t address_32, int length);
+  Address* AllocateSegment(const string& name_first, int length);
+  Address* AllocateSegment(uint32_t address_32, int length);
 
   // Save and Load from file
   // These are going to be very hard to write
@@ -41,6 +41,10 @@ public:
   uint32_t ResolveToNumber(int changelist_number, const string& stateless);
   Address* ResolveToAddress(int changelist_number, const string& stateless);
 
+  // The entire history of this memory
+  // Not sure what to do about the publicness of this
+  History history_;
+
 private:
 // This is the actual backend store for memory segments
 // A pointer to these elements exists in either space_ or named_
@@ -57,9 +61,6 @@ private:
 // Registers do not exist in space_, just named_
   map<uint32_t, vector<Address*>* > space_;
   map<string, Address* > named_;
-
-// The entire history of this memory
-  History history_;
 };
 
 }

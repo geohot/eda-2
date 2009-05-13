@@ -8,9 +8,12 @@ SET(EDA_SRCS
 ./Address.cc
 ./Changelist.cc
 ./ChangelistFactory.cc
+./StatelessChangelist.cc
 #./InstructionFactoryARM.cc
 ./Memory.cc
 ./util.cc
+./debug.cc
+./History.cc
 )
 #INCLUDE_DIRECTORIES(./include/)
 ADD_LIBRARY(eda_lib ${EDA_SRCS})

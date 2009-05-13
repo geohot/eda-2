@@ -8,7 +8,10 @@
 namespace eda {
 
 Address* Address::get8(int changelist_number, uint8_t* data) {
-  (*data) = (--datamap_.upper_bound(changelist_number))->second;
+  if(changelist_number == 0)    // 0 is a link to the latest changelist
+    (*data) = datamap_.rbegin()->second;
+  else
+    (*data) = (--datamap_.upper_bound(changelist_number))->second;
   return next_;
 }
 
@@ -56,6 +59,10 @@ Address* Address::get_next() {
 
 bool Address::set_name(const string& name) {
   name_ = name;
+}
+
+const string& Address::get_name() {
+  return name_;
 }
 
 }
