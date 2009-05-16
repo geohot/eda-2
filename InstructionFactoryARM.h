@@ -32,10 +32,10 @@ const string opcodes[16] = { "AND", "XOR", "SUB", "RSB", "ADD", "ADC",
 const string shifts[4] = { "LSL", "LSR", "ASR", "ROR" };
 
 // All based off CPSR, CPSR is NZCV...
-const string Z = "((`CPSR` >> 30) & 1)";
-const string C = "((`CPSR` >> 29) & 1)";
-const string N = "((`CPSR` >> 31) & 1)";
-const string V = "((`CPSR` >> 28) & 1)";
+const string Z = "(([`CPSR`] >> 30) & 1)";
+const string C = "(([`CPSR`] >> 29) & 1)";
+const string N = "(([`CPSR`] >> 31) & 1)";
+const string V = "(([`CPSR`] >> 28) & 1)";
 
 const string conditions_absolute[16] = {
   Z,     // EQ, Z set
@@ -62,9 +62,9 @@ const string opcodes_absolute[16] = {
 // C is update carry
 // NS is no store
 // NF is no first(Rn)
-//AND XOR SUB RSB    ADD ADC SBC  RSC   TST CMP CMN ORR MOV BIC  MVN
-//                        C   C    C    NS  NS  NS      NF       NF
-  "&","^","-","*-1+","+","+","-","*-1+","&","-","+","|","", "&~","~"
+//AND XOR SUB RSB    ADD ADC SBC  RSC   TST TEQ CMP CMN ORR MOV BIC  MVN
+//                        C   C    C    NS  NS  NS  NS      NF       NF
+  "&","^","-","*-1+","+","+","-","*-1+","&","^","-","+","|","", "&~","~"
 };
 
 #define F_C 1
@@ -72,7 +72,9 @@ const string opcodes_absolute[16] = {
 #define F_NF 4
 
 const int opcodes_flags[16] = {
-  0,0,0,0,0,F_C,F_C,F_C,F_NS,F_NS,F_NS,0,F_NF,0,F_NF
+//AND XOR SUB RSB    ADD ADC SBC  RSC   TST  TEQ  CMP  CMN  ORR MOV  BIC  MVN
+//                        C   C    C    NS   NS   NS   NS       NF        NF
+  0,  0,  0,  0,     0,  F_C,F_C,F_C,   F_NS,F_NS,F_NS,F_NS,0,  F_NF,0,   F_NF
 };
 
 const string shifts_absolute[4] = { "<<", ">>", ">>>", ">/>" };

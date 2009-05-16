@@ -76,12 +76,19 @@ enum {
   OPER_ASR,
   OPER_ROR,
   OPER_ROL,
+  OPER_AND,
+  OPER_ORR,
+  OPER_XOR,
+  OPER_NOT,
+  OPER_EQU,
+  OPER_GT,
+  OPER_LT
 };
 
 // Recursive function for resolving stateless strings
 // Should really return a vector of things it accessed too
 uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless) {
-  INFO << "resolving " << stateless << endl;
+  //INFO << "resolving " << stateless << endl;
   // Segments are [..], (..), and `..`
   //   [..] is get_address_by_location with implied (..) and deref
   //   (..) is ResolveToNumber
@@ -102,9 +109,10 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
 
     next_string_location = string_location;
 
+    //INFO << stateless << " " << string_location << endl;
     switch (stateless[string_location]) {
       case '[':
-        next_string_location = stateless.rfind(']'); //, string_location);
+        next_string_location = find_matching(stateless, string_location, '[', ']');
         addr = ResolveToAddress(changelist_number, stateless.substr(string_location+1, next_string_location-string_location-1));
         if(addr != NULL) {
           addr->get32(changelist_number, &lastval);
@@ -116,7 +124,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
         }
         break;
       case '(':
-        next_string_location = stateless.rfind(')'); //, string_location);
+        next_string_location = find_matching(stateless, string_location, '(', ')');
         lastval = ResolveToNumber(changelist_number, stateless.substr(string_location+1, next_string_location-string_location-1));
         operate = true;
         break;
@@ -129,6 +137,21 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
       case '-': oper = OPER_SUB; break;
       case '*': oper = OPER_MUL; break;
       case '/': oper = OPER_DIV; break;
+
+      case '&': oper = OPER_AND; break;
+      case '|': oper = OPER_ORR; break;
+      case '^': oper = OPER_XOR; break;
+      case '~': oper = OPER_NOT; break;
+
+      case '=':
+        if(stateless[++next_string_location] == '=') {
+          oper = OPER_EQU;
+          break;
+        } else {
+          LOG << "unknown operator" << endl;
+          error = true;
+          break;
+        }
       case '<':
       case '>':
         if (stateless[++next_string_location] == '<') {
@@ -145,8 +168,10 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
         } else if(stateless[next_string_location] == '<') {
           oper = OPER_ROL; break;
         } else {
-          LOG << "unknown operator" << endl;
-          error = true;
+          //LOG << "unknown operator" << endl;
+          //error = true;
+          if(stateless[--next_string_location] == '<') oper = OPER_LT;
+          else oper = OPER_GT;
           break;
         }
       default:    // Numbers
@@ -177,6 +202,19 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
         case OPER_SUB: retval-=lastval; break;
         case OPER_MUL: retval*=lastval; break;
         case OPER_DIV: retval/=lastval; break;
+
+        case OPER_AND: retval&=lastval; break;
+        case OPER_ORR: retval|=lastval; break;
+        case OPER_XOR: retval^=lastval; break;
+        case OPER_NOT: retval=~lastval; break;
+
+        // 1 is equal
+        // 0 if not equal
+        case OPER_EQU: retval=(uint32_t)(retval==lastval); break;
+
+        case OPER_GT: retval=(uint32_t)(retval>lastval); break;
+        case OPER_LT: retval=(uint32_t)(retval<lastval); break;
+
         case OPER_LSL: retval<<=lastval; break;
         case OPER_LSR: retval>>=lastval; break;
         case OPER_ASR: retval>>=lastval; break;
@@ -192,14 +230,14 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
   if(error == true) {
     LOG << "Error in parser: " << stateless << "[" << string_location << "]" << endl;
   }
-  INFO << "got " << std::hex << retval << endl;
+  //INFO << "got " << std::hex << retval << endl;
   return retval;
 }
 
 Address* Memory::ResolveToAddress(int changelist_number, const string& stateless) {
   // Supports numbers and `names`
   // No operator support yet
-  INFO << "lookup address: \"" << stateless << "\"" << endl;
+  //INFO << "lookup address: \"" << stateless << "\"" << endl;
   if(stateless[0] == '`')
     return get_address_by_name(stateless.substr(1, stateless.find_first_of('`',1) - 1));
   else

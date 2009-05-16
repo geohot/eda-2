@@ -20,6 +20,8 @@ uint32_t stoi(const std::string& num);
 
 bool file_to_string(const std::string& filename, std::string* out);
 
+int find_matching(const std::string& s, int start, char open, char close);
+
 // LOG(INFO)
 // LOG(ERROR)
 
@@ -35,9 +37,9 @@ bool file_to_string(const std::string& filename, std::string* out);
 #define INFO std::cout << std::dec << THIS_FILE << ": "
 
 //inline uint32_t rol(uint32_t data, int len);
-#define rol(data, len) (data << len) | (data >> (32-len))
+#define rol(data, len) ((data << len) | (data >> (32-len)))
 //inline uint32_t ror(uint32_t data, int len);
-#define ror(data, len) (data >> len) | (data << (32-len))
+#define ror(data, len) ((data >> len) | (data << (32-len)))
 
 }
 

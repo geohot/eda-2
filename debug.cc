@@ -19,12 +19,19 @@ void eda::DebugPrint(Changelist* a) {
   }
   cout << "Changelist number: " << a->get_changelist_number() << endl;
   cout << "Owned by: " << a->get_owner()->get_name() << endl;
+  bool first = true;
   if (a->get_size() > 0) {
     ChangelistIterator it;
     a->get_first_change(&it);
     do {
-      cout << setw(4) << hex << it->first->get_name() << " = " << (uint32_t)it->second << endl;
+      if(it->first->get_name() != "") {
+        if(!first) cout << endl;
+        else first = false;
+        cout << hex << setfill(' ') << setw(4) << hex << it->first->get_name() << " = " << setw(2) << setfill('0') << (uint32_t)it->second;
+      } else
+        cout << hex << " " << setw(2) << setfill('0') << (uint32_t)it->second;
     } while(a->get_next_change(&it));
+    cout << endl;
   }
   else
     cout << "This is a blank Changelist" << endl;

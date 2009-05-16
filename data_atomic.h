@@ -21,7 +21,7 @@ namespace eda {
 
 class Address;    // Can't actually call address
 
-#define StatelessChangelistIterator map<pair<string, int>, pair<string, string> >::iterator
+#define StatelessChangelistIterator map<pair<string, string>, pair<int, string> >::iterator
 
 // This is a changelist that is "position independent" and "state independent"
 // Should be initted as a string
@@ -32,14 +32,14 @@ public:
   // if(rhs.first)
   //   (lhs.second)lhs.first = rhs.second;
   // lhs.second is number of bits
-  void add_change(const string& lhs, int bits, const string& cond, const string& value);
+  void add_change(const string& lhs, const string& cond, int bytes, const string& value);
 
   // Returns first change in list
   bool get_first_change(StatelessChangelistIterator* a);
   bool get_next_change(StatelessChangelistIterator* a);
   int get_size();
 private:
-  map<pair<string, int>, pair<string, string> > changes_;
+  map<pair<string, string>, pair<int, string> > changes_;
 };
 
 #define ChangelistIterator map<Address*, uint8_t>::iterator

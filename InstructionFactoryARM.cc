@@ -34,14 +34,20 @@ Address* InstructionFactoryARM::Process(Address* start) {
   // Extract register data
   string Rn = registers[ (opcode >> 16) & 0xF ];
   string Rd = registers[ (opcode >> 12) & 0xF ];
+
+  bool RdisPC = (((opcode >> 12) & 0xF) == 15);
+  // Set if PC is changed by other crap
+  bool changedPC = false;
+
   string Rs = registers[ (opcode >> 8) & 0xF ];
   string Rm = registers[ (opcode >> 0) & 0xF ];
 
   // Extract immediate data
   string immed24 =
-    immed_signed( ((opcode & 0x7FFFFF) << 2) * ((opcode & 0x800000)?-1:1) );
-  string immed12 = immed(opcode & 0x3FF);
-  string immed8 = immed( rol(opcode & 0xFF, ((opcode >> 8) & 0xF) * 2) );
+    immed_signed( ((opcode & 0x7FFFFF) << 2) - ((opcode & 0x800000)?0x2000000:0) );
+  string immed12 = immed(opcode & 0xFFF);
+
+  string immed8 = immed( ror( (opcode & 0xFF), ((opcode >> 8) & 0xF) * 2) );
 
   // Extract shift information
   string immedshift = immed((opcode >> 7) & 0x1F);
@@ -58,31 +64,62 @@ Address* InstructionFactoryARM::Process(Address* start) {
   string op = opcodes_absolute[opint];
 
   // Flags
-  bool updateflags = ((opcode >> 20) & 1) || (opcodes_flags[opint] && F_NS);
+  bool updateflags = ((opcode >> 20) & 1);  // || (opcodes_flags[opint] & F_NS);
   bool link = ((opcode >> 24) & 1);
   bool load = ((opcode >> 20) & 1);
   bool byte = ((opcode >> 22) & 1);
   bool reg = ((opcode >> 4) & 1);
   bool sign = ((opcode >> 23) & 1);
 
+  bool writeback = ((opcode >> 21) & 1);
+  bool preincrement = ((opcode >> 24) & 1);
+  bool increment = ((opcode >> 23) & 1);
+
   // Parsed Instructionness
   string formatstring = "";
   vector<string> args;
 
-  int cmdint = (opcode >> 25) & 3;
+  int cmdint = (opcode >> 25) & 7;
 
   string changesource = "";
+
+  string operand = "";
+
+  // Debugging
+  /*cout << "Op:     " << hex << opcode << endl;
+  cout << "Type:   " << cmdint << endl;
+  cout << "Rn:     " << Rn << endl;
+  cout << "Rd:     " << Rd << endl;
+  cout << "Rs:     " << Rs << endl;
+  cout << "Rm:     " << Rm << endl;
+
+  cout << "Shift:  " << shiftXXX << "  " << shift << endl;
+  cout << "Cond:   " << condXX << "  " << cond << endl;
+  cout << "Opcode: " << opXXX << "  " << op << endl;
+
+  cout << "immed24:" << immed24 << endl;
+  cout << "immed12:" << immed12 << endl;
+  cout << "immed8: " << immed8 << endl;*/
+
+  // c++ is obnoxious
+  int reglist = opcode & 0xFFFF;
+  int rnum = 0;
+  int offset = 0;
 
   switch (cmdint) {
     case 0:   // DPIS + DPRS
     case 1:   // DPI
-      formatstring += "OFC R, ";
+      formatstring += "OFC ";
       args.push_back(opXXX);
       args.push_back(((opcode >> 20) & 1)?"S":"");
       args.push_back(condXX);
-      args.push_back(Rd);
 
-      if (!(opint & F_NF)) { // First register
+      if (!(opcodes_flags[opint] & F_NS)) {
+        formatstring += "R, ";
+        args.push_back(Rd);
+      }
+
+      if (!(opcodes_flags[opint] & F_NF)) { // First register
         formatstring += "R, ";
         args.push_back(Rn);
         changesource += "[`"+Rn+"`]";
@@ -92,23 +129,49 @@ Address* InstructionFactoryARM::Process(Address* start) {
         formatstring += "R o ";
         args.push_back(Rm);
         args.push_back(shiftXXX);
-        changesource += op + "[`"+Rm+"`]" + shift;
+        changesource += op;
+        operand += "[`"+Rm+"`]" + shift;
 
         if (reg) { // Register shift
           formatstring += "R";
           args.push_back(Rs);
-          changesource += "[`"+Rs+"`]";
+          operand += "[`"+Rs+"`]";
         } else {  // Immed shift
           formatstring += "#I";
           args.push_back(immedshift);
-          changesource += immedshift;
+          operand += immedshift;
         }
       } else {
         formatstring += "#I";
         args.push_back(immed8);
-        changesource += immed8;
+        changesource += op;
+        operand += immed8;
       }
-      change->add_change("`"+Rd+"`", 32, cond, changesource);
+      if (!(opcodes_flags[opint] & F_NS)) { // If not No set
+        change->add_change("`"+Rd+"`", cond, 4, changesource+operand);
+      }
+
+      // All based off CPSR, CPSR is NZCV...
+      //cout << "updateflags: " << updateflags << endl;
+      if (updateflags) {
+        string flags = "([`CPSR`] & 0x0FFFFFFF)";
+        flags += " | ((" + changesource + ") & 0x80000000)";   // N
+        flags += " | (((" + changesource + ")==0)<<30)";      // Z
+        if (opint == 2 || opint == 6 | opint == 10) {  // SUB or SBC or CMP
+          flags += " | (([`"+Rn+"`] < " + operand +") << 29)";
+        }
+        else if (opint == 3 || opint == 7) {  // RSB or RSC
+          flags += " | (([`"+Rn+"`] > " + operand +") << 29)";
+        }
+        else if (opint == 4 || opint == 5 || opint == 11) {  // ADD, ADC, or CMN
+          flags += " | ((([`"+Rn+"`] >> 2) & ((" + operand + ") >> 2)) & 0x2000000)";
+        }
+
+        // C is damn confusing
+        // so is V
+        change->add_change("`CPSR`", cond, 4, flags);
+      }
+
       break;
     case 2:   //LSIO
     case 3:   //LSRO
@@ -141,28 +204,73 @@ Address* InstructionFactoryARM::Process(Address* start) {
       formatstring += "]";
       if(load) {
         if(byte) {
-          change->add_change("`"+Rd+"`", 8, cond, changesource);
+          change->add_change("`"+Rd+"`", cond, 1, changesource);
         } else {
-          change->add_change("`"+Rd+"`", 32, cond, changesource);
+          changedPC = RdisPC;
+          if(changedPC)
+            change->add_change("`"+Rd+"`", cond, 4, changesource+"+8");
+          else
+            change->add_change("`"+Rd+"`", cond, 4, changesource);
         }
       }
       break;
     case 4: //LSM
       // do later
+      formatstring += "FOFFC RF, {";
+      args.push_back(load?"LD":"ST");
+      args.push_back("M");
+      args.push_back(increment?"I":"D");
+      args.push_back(preincrement?"B":"A");
+      args.push_back(condXX);
+      args.push_back(Rn);
+      args.push_back(writeback?"!":"");
+
+      if (preincrement) {
+        if (increment) offset += 4;
+        else offset -= 4;
+      }
+      while(reglist != 0) {
+        if(reglist&1) {
+          formatstring += "R";
+          if((reglist>>1) != 0) formatstring += ", ";
+          args.push_back(registers[rnum]);
+          if(load)
+            change->add_change("`"+registers[rnum]+"`", cond,4, "[[`"+Rn+"`]+"+immed(offset)+"]");
+          if (increment) offset += 4;
+          else offset -= 4;
+        }
+        reglist >>= 1;
+        rnum++;
+      }
+      if (writeback) {
+        if (preincrement) {
+          if (increment) offset -= 4;
+          else offset += 4;
+        }
+        change->add_change("`"+Rn+"`", cond,4, "[`"+Rn+"`]+"+immed(offset));
+      }
+      formatstring += "}";
       break;
     case 5: // B, BL
       formatstring += "OFC P";
       args.push_back("B");
       args.push_back(link?"L":"");
-      args.push_back(cond);
+      args.push_back(condXX);
       args.push_back(immed24);
 
-      change->add_change("`PC`", 32, cond, "[`PC`]+"+immed24);
+      change->add_change("`PC`",  cond, 4, "[`PC`]+8+"+immed24);
+      changedPC = true;
       if(link) {
-        change->add_change("`LR`", 32, cond, "[`PC`]+4");
+        change->add_change("`LR`", cond, 4, "[`PC`]+4");
       }
       break;
   }
+
+  //cout << "changedPC: " << changedPC << endl;
+  if(!changedPC)
+    change->add_change("`PC`", "1", 4, "[`PC`]+4");
+  else if(changedPC && cond != "1")
+    change->add_change("`PC`", "~("+cond+")&1", 4, "[`PC`]+4");
 
 
   ParsedInstruction* parsed = new ParsedInstruction(formatstring, args);

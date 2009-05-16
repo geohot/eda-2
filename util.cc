@@ -39,6 +39,24 @@ bool eda::file_to_string(const std::string& filename, std::string* out) {
   return read == size;
 }
 
+int eda::find_matching(const std::string& s, int start, char open, char close) {
+  //cout << s << endl;
+  int count = 0;
+  for (int i = start; i < s.length(); i++) {
+    if (s[i] == close) {
+      if (count == 1) {
+        //cout << "returning " << i << endl;
+        return i;
+      }
+      else count--;
+    } else if (s[i] == open) {
+      count++;
+    }
+  }
+  LOG << "error in brackets" << endl;
+  return -1;
+}
+
 
 // Returns things like 9 and 0x4F
 string eda::immed(uint32_t data) {

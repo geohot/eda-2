@@ -13,8 +13,8 @@ using namespace std;
 
 using namespace eda;
 
-void StatelessChangelist::add_change(const string& lhs, int bits, const string& cond, const string& value) {
-  changes_.insert(make_pair(make_pair(lhs, bits), make_pair(cond, value)));
+void StatelessChangelist::add_change(const string& lhs, const string& cond, int bytes, const string& value) {
+  changes_.insert(make_pair(make_pair(lhs, cond), make_pair(bytes, value)));
 }
 
 bool StatelessChangelist::get_first_change(StatelessChangelistIterator* a) {
