@@ -35,7 +35,7 @@ public:
   void add_change(const string& lhs, int bits, const string& cond, const string& value);
 
   // Returns first change in list
-  StatelessChangelistIterator get_first_change();
+  bool get_first_change(StatelessChangelistIterator* a);
   bool get_next_change(StatelessChangelistIterator* a);
   int get_size();
 private:
@@ -63,8 +63,8 @@ public:
   int get_size();
 
   // Returns first change in list
-  map<Address*, uint8_t>::iterator get_first_change();
-  bool get_next_change(map<Address*, uint8_t>::iterator* a);
+  bool get_first_change(ChangelistIterator* a);
+  bool get_next_change(ChangelistIterator* a);
 
   void DebugPrint();
 private:
@@ -90,7 +90,8 @@ public:
   // Is this valid c++?
   // Should be like printf for strings
   ParsedInstruction(const string& format, const vector<string>& args) : format_(format), args_(args) {}
-//private:
+  string GetConsoleString();
+private:
 // It'd be sweet if this was a string with formatting
   string format_;
   vector<string> args_;

@@ -20,7 +20,8 @@ void eda::DebugPrint(Changelist* a) {
   cout << "Changelist number: " << a->get_changelist_number() << endl;
   cout << "Owned by: " << a->get_owner()->get_name() << endl;
   if (a->get_size() > 0) {
-    ChangelistIterator it = a->get_first_change();
+    ChangelistIterator it;
+    a->get_first_change(&it);
     do {
       cout << setw(4) << hex << it->first->get_name() << " = " << (uint32_t)it->second << endl;
     } while(a->get_next_change(&it));
@@ -35,7 +36,8 @@ void eda::DebugPrint(StatelessChangelist* a) {
     return;
   }
   if (a->get_size() > 0) {
-    StatelessChangelistIterator it = a->get_first_change();
+    StatelessChangelistIterator it;
+    a->get_first_change(&it);
     do {
       cout << setw(4) << it->first.first << "(" << it->first.second << ") (" << it->second.first << ")= " << it->second.second << endl;
     } while(a->get_next_change(&it));
@@ -52,8 +54,9 @@ void eda::DebugPrint(vector<int>* v) {
 }
 
 void eda::DebugPrint(ParsedInstruction* i) {
-  for (vector<string>::iterator it = i->args_.begin(); it != i->args_.end(); ++it) {
+  /*for (vector<string>::iterator it = i->args_.begin(); it != i->args_.end(); ++it) {
     cout << *it;
   }
-  cout << endl;
+  cout << endl;*/
+  cout << i->GetConsoleString() << endl;
 }

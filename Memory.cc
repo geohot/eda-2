@@ -210,7 +210,8 @@ Address* Memory::ResolveToAddress(int changelist_number, const string& stateless
 //Add History functionality, and do it soon
 void Memory::Commit(Changelist* c) {
   INFO << "commiting: " << c->get_changelist_number() << endl;
-  ChangelistIterator it = c->get_first_change();
+  ChangelistIterator it;
+  if(!c->get_first_change(&it)) return;
   do {
     //INFO << "committing: " << it->second << endl;
     // OMG, History code

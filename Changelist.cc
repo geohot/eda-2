@@ -20,14 +20,15 @@ void Changelist::add_read(Address* source) {
   read_.push_back(source);
 }
 
-ChangelistIterator Changelist::get_first_change() {
-  if(changes_.size() > 0)
-    return changes_.begin();
-  else
-    return NULL;
+bool Changelist::get_first_change(ChangelistIterator* a) {
+  if(changes_.size() > 0) {
+    (*a) = changes_.begin();
+    return true;
+  } else
+    return false;
 }
 
-bool Changelist::get_next_change(map<Address*, uint8_t>::iterator* a) {
+bool Changelist::get_next_change(ChangelistIterator* a) {
   ++(*a);
   return (*a) != changes_.end();
 }

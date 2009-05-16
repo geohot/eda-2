@@ -17,11 +17,13 @@ void StatelessChangelist::add_change(const string& lhs, int bits, const string& 
   changes_.insert(make_pair(make_pair(lhs, bits), make_pair(cond, value)));
 }
 
-StatelessChangelistIterator StatelessChangelist::get_first_change() {
-  if(changes_.size() > 0)
-    return changes_.begin();
+bool StatelessChangelist::get_first_change(StatelessChangelistIterator* a) {
+  if(changes_.size() > 0) {
+    (*a) = changes_.begin();
+    return true;
+  }
   else
-    return NULL;
+    return false;
 }
 
 bool StatelessChangelist::get_next_change(StatelessChangelistIterator* a) {

@@ -112,8 +112,9 @@ Address* InstructionFactoryARM::Process(Address* start) {
       break;
     case 2:   //LSIO
     case 3:   //LSRO
-      formatstring += "OFC R, [R, ";
+      formatstring += "FOFC R, [R, ";
       args.push_back(load?"LD":"ST");
+      args.push_back("R");
       args.push_back(byte?"B":"");
       args.push_back(condXX);
       args.push_back(Rd);
@@ -137,6 +138,7 @@ Address* InstructionFactoryARM::Process(Address* start) {
         changesource += "[`"+Rm+"`]" + shift + immedshift;
       }
       changesource += "]";
+      formatstring += "]";
       if(load) {
         if(byte) {
           change->add_change("`"+Rd+"`", 8, cond, changesource);

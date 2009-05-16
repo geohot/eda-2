@@ -30,8 +30,8 @@ Changelist* ChangelistFactory::CreateFromInput(Address* owner, const string& dat
 }
 
 Changelist* ChangelistFactory::CreateFromStatelessChangelist(Address* owner, StatelessChangelist& in, Memory* state) {
-  StatelessChangelistIterator it = in.get_first_change();
-  if (it == NULL) return NULL;
+  StatelessChangelistIterator it;
+  if (!in.get_first_change(&it)) return NULL;
   Changelist* out = new Changelist(current_changelist_number_, owner);
   do {
     if (state->ResolveToNumber(current_changelist_number_, it->second.first) == 1) {   // Check the condition

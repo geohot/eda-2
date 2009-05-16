@@ -18,7 +18,8 @@ void History::AddCommited(Changelist* cl) {
 
   modifiers_[cl->get_owner()].push_back(cl->get_changelist_number());
 
-  ChangelistIterator it = cl->get_first_change();
+  ChangelistIterator it;
+  cl->get_first_change(&it);
   do {
     modified_[it->first].push_back(cl->get_changelist_number());
   } while(cl->get_next_change(&it));
