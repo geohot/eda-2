@@ -46,7 +46,7 @@ void eda::DebugPrint(StatelessChangelist* a) {
     StatelessChangelistIterator it;
     a->get_first_change(&it);
     do {
-      cout << setw(4) << it->first.first << "(" << it->first.second << ") (" << it->second.first << ")= " << it->second.second << endl;
+      cout << setw(4) << it->first.first << "(" << it->second.first << ") (" << it->first.second << ")= " << it->second.second << endl;
     } while(a->get_next_change(&it));
   }
   else

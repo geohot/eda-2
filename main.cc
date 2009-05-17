@@ -47,6 +47,7 @@ int main(int argc, char* argv[]) {
   me = m->AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
   load_file("bootrom", 0x400000);
 
+  m->AllocateSegment(0xf4300000, 0x100);
   m->AllocateSegment(0xf4400000, 0x100);
 
   InstructionFactoryARM iarm;
@@ -88,8 +89,8 @@ int main(int argc, char* argv[]) {
         a = m->ResolveToAddress(0, "[`PC`]-8");   // hardcoded for now
         if(a->get_instruction() == NULL) {
           next_disassembly_address = iarm.Process(a);
-        } else
-          break;    //been here before
+        } //else
+          //break;    //been here before
 
         cout << "******* " << a->get_name() << endl;
         cout << "******* ";

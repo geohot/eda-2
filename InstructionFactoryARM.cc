@@ -183,8 +183,7 @@ Address* InstructionFactoryARM::Process(Address* start) {
       args.push_back(Rd);
       args.push_back(Rn);
 
-      changesource = "[";
-      changesource += "[`"+Rn+"`]";
+      changesource = "[`"+Rn+"`]";
       if(sign) changesource += "+";
       else changesource += "-";
       if (cmdint == 2) {
@@ -200,18 +199,19 @@ Address* InstructionFactoryARM::Process(Address* start) {
         else args.push_back("-"+immedshift);
         changesource += "[`"+Rm+"`]" + shift + immedshift;
       }
-      changesource += "]";
       formatstring += "]";
       if(load) {
         if(byte) {
-          change->add_change("`"+Rd+"`", cond, 1, changesource);
+          change->add_change("`"+Rd+"`", cond, 1, "["+changesource+"]");
         } else {
           changedPC = RdisPC;
           if(changedPC)
-            change->add_change("`"+Rd+"`", cond, 4, changesource+"+8");
+            change->add_change("`"+Rd+"`", cond, 4, "["+changesource+"]+8");
           else
-            change->add_change("`"+Rd+"`", cond, 4, changesource);
+            change->add_change("`"+Rd+"`", cond, 4, "["+changesource+"]");
         }
+      } else {  //store
+        change->add_change(changesource, cond, byte?1:4, "[`"+Rd+"`]");
       }
       break;
     case 4: //LSM
