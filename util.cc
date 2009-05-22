@@ -57,6 +57,16 @@ int eda::find_matching(const std::string& s, int start, char open, char close) {
   return -1;
 }
 
+void eda::SerializeToXML(ostringstream& out, const vector<int>& v, string name, string item) {
+  out << "<" << name << ">";
+  for (int i = 0; i < v.length(); i++) {
+    out << "<" << item << ">";
+
+    out << "</" << item << ">";
+  }
+  out << "</" << name << ">";
+}
+
 
 // Returns things like 9 and 0x4F
 string eda::immed(uint32_t data) {

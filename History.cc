@@ -34,6 +34,8 @@ Changelist* History::get_changelist(int changelist_number) {
     return NULL;
 }
 
+// These need to turn into XML
+
 vector<int>* History::get_modifiers(Address *a) {
   map<Address*, vector<int> >::iterator it = modifiers_.find(a);
   if (it != modifiers_.end())

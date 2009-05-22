@@ -45,4 +45,25 @@ int Changelist::get_size() {
   return changes_.size();
 }
 
+// all SerializeToXML have no spaces
+void Changelist::SerializeToXML(ostringstream& out) {
+  out << "<changelist>";
+  out << "<number>" << changelist_number_ << "</number>";
+  out << "<owner>" << owner_->get_name() << "</owner>";
+  out << "<changes>";
+  for (ChangelistIterator it = changes_.begin(); it != changes_.end(); ++it) {
+    out << "<change>";
+    out << "<address>" << it->first->get_name() << "</address>";
+    out << "<value>" << (int)it->second << "</value>";
+    out << "</change>";
+  }
+  out << "</changes>";
+  out << "<reads>";
+  for (vector<Address*>::iterator it = read_.begin(); it != read_.end(); ++it) {
+    out << "<address>" << it->get_name() << "</address>";
+  }
+  out << "</reads>";
+  out << "</changelist>";
+}
+
 }

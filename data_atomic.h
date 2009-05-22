@@ -7,10 +7,13 @@
 // Nothing should be included
 // These are the lowest level data structures in EDA
 // Currently, thats just the changelists
+//
+// They should all be serializable to XML
 
 #ifndef EDA_DATAATOMIC_H_
 #define EDA_DATAATOMIC_H_
 
+#include <sstream>
 #include <string>
 #include <vector>
 #include <map>
@@ -38,6 +41,7 @@ public:
   bool get_first_change(StatelessChangelistIterator* a);
   bool get_next_change(StatelessChangelistIterator* a);
   int get_size();
+  void SerializeToXML(ostringstream& out);
 private:
   map<pair<string, string>, pair<int, string> > changes_;
 };
@@ -66,7 +70,7 @@ public:
   bool get_first_change(ChangelistIterator* a);
   bool get_next_change(ChangelistIterator* a);
 
-  void DebugPrint();
+  void SerializeToXML(ostringstream& out);
 private:
   // This is every change the changelist makes
   // Addresses are stored in their pointer form so no moving or renaming
@@ -90,11 +94,13 @@ public:
   // Is this valid c++?
   // Should be like printf for strings
   ParsedInstruction(const string& format, const vector<string>& args) : format_(format), args_(args) {}
+  void SerializeToXML(ostringstream& out);
   string GetConsoleString();
 private:
 // It'd be sweet if this was a string with formatting
   string format_;
   vector<string> args_;
+  static map<char, string> web_lookup_;
 };
 
 }

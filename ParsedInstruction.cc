@@ -39,3 +39,34 @@ string ParsedInstruction::GetConsoleString() {
   }
   return out;
 }
+
+map<char, string> ParsedInstruction::web_lookup_;
+
+void ParsedInstruction::SerializeToXML(ostringstream& out) {
+  if(web_lookup_.empty()) {
+    web_lookup_.insert('O', "opcode");
+    web_lookup_.insert('o', "opcode");
+    web_lookup_.insert('F', "flags");
+    web_lookup_.insert('C', "flags");
+    web_lookup_.insert('R', "register");
+    web_lookup_.insert('I', "immed");
+    web_lookup_.insert('P', "location");
+    web_lookup_.insert('p', "immed");
+  }
+  out << "<parsedinstruction>";
+  int vpos = 0;
+  for (int i = 0; i < format_.length(); i++) {
+    map<char, string>::iterator it = web_lookup_.find(format_[i]);
+    if(it != web_lookup_.end()) {
+      out << "<atom>";
+      out << "<type>" << web_lookup_->second << "</type>";
+      out << "<data>" << args_[vpos] << "</data>";
+      vpos++;
+      out << "</atom>";
+    } else {
+      out << "<formatting>"  << format_[i] << "</formatting>";
+    }
+  }
+
+  out << "</parsedinstruction>";
+}

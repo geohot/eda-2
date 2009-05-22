@@ -14,10 +14,11 @@ namespace eda {
 Address* Memory::AllocateSegment(uint32_t address_32, int length) {
   vector<Address*>* ts = AllocateSegment(length);
 
-//For debugging, give everything a name
+// For debugging, give everything a name
+// Or maybe not just for debugging
   for (int l = 0; l < length; l++) {
     ostringstream name;
-    name << "loc_" << hex << (address_32+l);
+    name << "unk_" << hex << (address_32+l);
     (*ts)[l]->set_name(name.str());
   }
 
@@ -87,6 +88,7 @@ enum {
 
 // Recursive function for resolving stateless strings
 // Should really return a vector of things it accessed too
+// Add support for: #<clnum>
 uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless) {
   //INFO << "resolving " << stateless << endl;
   // Segments are [..], (..), and `..`
