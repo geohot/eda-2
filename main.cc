@@ -59,6 +59,7 @@ int main(int argc, char* argv[]) {
   signal(SIGQUIT, quitproc);
 
   s.RegisterCommandHandler("GET", &f, &FactoryOwner::HandleGetRequest);
+  s.RegisterCommandHandler("EVAL", &f, &FactoryOwner::HandleEvalRequest);
   s.StartServer(8080);
 
   return 0;

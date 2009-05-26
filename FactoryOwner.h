@@ -18,6 +18,7 @@ class FactoryOwner {
 public:
   FactoryOwner();
   bool HandleGetRequest(const std::vector<std::string>& argv, std::string* out);
+  bool HandleEvalRequest(const std::vector<std::string>& argv, std::string* out);
 private:
   ChangelistFactory changelist_factory_;
   // Something has got to be done about the InstructionFactories

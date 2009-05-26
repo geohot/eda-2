@@ -62,3 +62,11 @@ bool FactoryOwner::HandleGetRequest(const std::vector<string>& argv, std::string
     (*out) += "<html><head><title>EDA</title></head><body><h1>Resource not found</h1></body></html>";
   return true;
 }
+
+bool FactoryOwner::HandleEvalRequest(const std::vector<string>& argv, std::string* out) {
+  if(argv.size() > 0) {
+    ostringstream ss;
+    ss << std::hex << memory_.ResolveToNumber(0, argv[0]);
+    (*out) = ss.str();
+  }
+}

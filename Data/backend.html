@@ -4,5 +4,14 @@
 <script src="Data/backend.js"></script>
 </head>
 <body>
+<h2>EDA Backend Mini Frontend</h2>
+<input type="text" id="command" value="EVAL"/>
+<input type="text" id="address" value="[`R0`]"/>
+<br/>
+<input type="text" id="data"/>
+<br/>
+<input type="button" value="Go" onclick="send_request()"/>
+<br/><br/>
+<textarea cols=40 rows=10 id="response"></textarea>
 </body>
 </html>
