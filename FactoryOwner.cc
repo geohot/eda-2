@@ -31,9 +31,11 @@ FactoryOwner::FactoryOwner() {
 bool FactoryOwner::HandleGetRequest(const std::vector<string>& argv, std::string* out) {
   if(argv.size() == 0) {
     //(*out) += "<html><head><title>EDA</title></head><body>I am an EDA backend, go talk to a frontend</body></html>";
-    File::ReadFileToString(DataDirectory + "backend.html");
-
-
+    File::ReadFileToString(kDataDirectory + "backend.html", out);
+  } else if(argv[0] == "favicon.ico") {
+    File::ReadFileToString(kDataDirectory + argv[0], out);
+  } else if(argv[0] == "Data" && argv.size() >= 2) {
+    File::ReadFileToString(kDataDirectory + argv[1], out);
   } else if(argv[0] == "Address" && argv.size() >= 3) {
     Address* a = memory_.ResolveToAddress(0, argv[1]);
     if (a != 0) {
@@ -41,12 +43,12 @@ bool FactoryOwner::HandleGetRequest(const std::vector<string>& argv, std::string
         (*out) += a->get_name();
       } else if(argv[2] == "Modifiers") {
         ostringstream ss;
-        ss << XMLHeader;
+        ss << kXMLHeader;
         SerializeToXML(ss, memory_.history_.get_modifiers(a), "modifiers", "number");
         (*out) += ss.str();
       } else if(argv[2] == "Modified") {
         ostringstream ss;
-        ss << XMLHeader;
+        ss << kXMLHeader;
         SerializeToXML(ss, memory_.history_.get_modified(a), "modified", "number");
         (*out) += ss.str();
       } else {

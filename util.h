@@ -15,8 +15,8 @@
 
 namespace eda {
 
-const std::string XMLHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-const std::string DataDirectory = "..\eda-2\Data\";
+const std::string kXMLHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+const std::string kDataDirectory = "../eda-2/Data/";
 
 // Returns things like 9 and 0x4F
 std::string immed(uint32_t data);

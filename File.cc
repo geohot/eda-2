@@ -4,21 +4,28 @@
 //  released under GPLv3, see http://gplv3.fsf.org/
 
 #include "File.h"
+#include "util.h"
 
 using namespace eda;
 using namespace std;
 
-bool WriteFileFromString(const std::string& filename, const std::string& data) {
+bool File::WriteFileFromString(const std::string& filename, const std::string& data) {
   FILE *f = fopen(filename.c_str(), "wb");
-  if (f == 0) return false;
+  if (f == 0) {
+    LOG(INFO) << "Can't open file: " << filename;
+    return false;
+  }
   fwrite(data.data(), 1, data.size(), f);
   fclose(f);
   return true;
 }
 
-bool ReadFileToString(const std::string& filename, std::string* data) {
+bool File::ReadFileToString(const std::string& filename, std::string* data) {
   FILE *f = fopen(filename.c_str(), "rb");
-  if (f == 0) return false;
+  if (f == 0) {
+    LOG(INFO) << "Can't open file: " << filename;
+    return false;
+  }
   fseek(f, 0, SEEK_END);
   int size = ftell(f);
   fseek(f, 0, SEEK_SET);
@@ -27,7 +34,9 @@ bool ReadFileToString(const std::string& filename, std::string* data) {
   bool ret = false;
   if (fread(d, 1, size, f) == size) {
     ret = true;
-    data.append(d, size);
+    data->append(d, size);
+  } else {
+    LOG(INFO) << "File size mismatch";
   }
   fclose(f);
   delete d;
