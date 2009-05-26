@@ -15,6 +15,8 @@ SET(EDA_SRCS
 ./debug.cc
 ./History.cc
 ./ParsedInstruction.cc
+./Servlet.cc
+./FactoryOwner.cc
 )
 #INCLUDE_DIRECTORIES(./include/)
 ADD_LIBRARY(eda_lib ${EDA_SRCS})

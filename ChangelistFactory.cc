@@ -24,7 +24,7 @@ Changelist* ChangelistFactory::CreateFromInput(Address* owner, const string& dat
     start = start->get_next();
   }
   if (i != data.size()) {
-    LOG << "only added " << i << " changes" << endl;
+    LOG(INFO) << "only added " << i << " changes" << endl;
   }
   return out;
 }
@@ -44,7 +44,7 @@ Changelist* ChangelistFactory::CreateFromStatelessChangelist(Address* owner, Sta
           value >>= 8;
         }
       } else {
-        LOG << "Address not found " << it->first.first << endl;
+        LOG(INFO) << "Address not found " << it->first.first;
       }
     }
   } while (in.get_next_change(&it));

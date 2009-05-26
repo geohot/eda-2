@@ -23,7 +23,7 @@ void History::AddCommited(Changelist* cl) {
   do {
     modified_[it->first].push_back(cl->get_changelist_number());
   } while(cl->get_next_change(&it));
-  INFO << "pushed " << cl->get_changelist_number() << endl;
+  LOG(INFO) << "pushed " << cl->get_changelist_number();
 }
 
 Changelist* History::get_changelist(int changelist_number) {
