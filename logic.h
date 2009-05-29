@@ -20,6 +20,9 @@ class MemoryManager {
 // EDA plugins are extensions to this
 class InstructionFactory {
 public:
+  // Sets up the addresses of the registers
+  virtual void InitRegisters(Memory *m) = 0;
+
   // Parses an instruction
   // instruction should be null when passed in
   // Returns the address after the end of this instruction

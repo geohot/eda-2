@@ -20,6 +20,7 @@ Address* Memory::AllocateSegment(uint32_t address_32, int length) {
     ostringstream name;
     name << "unk_" << hex << (address_32+l);
     (*ts)[l]->set_name(name.str());
+    named_.insert(make_pair(name.str(), (*ts)[l]));
   }
 
   space_.insert(make_pair(address_32, ts));

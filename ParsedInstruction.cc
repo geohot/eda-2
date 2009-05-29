@@ -58,17 +58,30 @@ void ParsedInstruction::SerializeToXML(ostringstream& out) {
   }
   out << "<parsedinstruction>";
   int vpos = 0;
+  bool lastformatting = false;
   for (int i = 0; i < format_.length(); i++) {
     map<char, string>::iterator it = web_lookup_.find(format_[i]);
     if(it != web_lookup_.end()) {
+      if(lastformatting==true) {
+        out << "</formatting>";
+        lastformatting = false;
+      }
       out << "<atom>";
       out << "<type>" << it->second << "</type>";
       out << "<data>" << args_[vpos] << "</data>";
       vpos++;
       out << "</atom>";
     } else {
-      out << "<formatting>"  << format_[i] << "</formatting>";
+      if(lastformatting==false) {
+        out << "<formatting>";
+        lastformatting = true;
+      }
+      out << format_[i];
     }
+  }
+  if(lastformatting==true) {
+    out << "</formatting>";
+    lastformatting = false;
   }
 
   out << "</parsedinstruction>";

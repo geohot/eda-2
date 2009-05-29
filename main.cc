@@ -21,15 +21,11 @@
 
 #include "InstructionFactoryARM.h"
 
+
 using namespace std;
 using namespace eda;
 
-ChangelistFactory* cf;
-Memory* m;
-
-Address* me;
-
-void load_file(const string& filename, uint32_t address) {
+void load_file(Memory *m, ChangelistFactory *cf, Address* me, const string& filename, uint32_t address) {
   LOG(INFO) << "loading file, " << filename;
   string data;
   if(!file_to_string(filename, &data)) {
@@ -54,22 +50,39 @@ void quitproc(int a) {
 }
 
 int main(int argc, char* argv[]) {
+#ifndef WIN32
   signal(SIGHUP, quitproc);
   signal(SIGINT, quitproc);
   signal(SIGQUIT, quitproc);
+#endif
+
+  Address* me = f.memory_.AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
+  load_file(&f.memory_, &f.changelist_factory_, me, "bootrom", 0x400000);
+
+  Address* PC = f.memory_.ResolveToAddress(0,"`PC`");
+  PC->set32(1, 0x400008);
+
 
   s.RegisterCommandHandler("GET", &f, &FactoryOwner::HandleGetRequest);
   s.RegisterCommandHandler("EVAL", &f, &FactoryOwner::HandleEvalRequest);
+  s.RegisterCommandHandler("READ", &f, &FactoryOwner::HandleReadRequest);
+  s.RegisterCommandHandler("STEP", &f, &FactoryOwner::HandleStepRequest);
+  s.RegisterCommandHandler("DISASSEMBLE", &f, &FactoryOwner::HandleDisassembleRequest);
   s.StartServer(8080);
 
   return 0;
 }
 
 int frontend_console() {
+  ChangelistFactory* cf;
+  Memory* m;
+
+  Address* me;
+
   cf = new ChangelistFactory();
   m = new Memory();
   me = m->AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
-  load_file("bootrom", 0x400000);
+  load_file(m, cf, me, "bootrom", 0x400000);
 
   m->AllocateSegment(0xf4300000, 0x100);
   m->AllocateSegment(0xf4400000, 0x100);
@@ -168,7 +181,7 @@ int frontend_console() {
         cout << "address not found" << endl;
         continue;
       }
-      vector<int>* changes = m->history_.get_modified(a);
+      vector<int>* changes = m->history_.get_xrefs(a);
       if (changes == NULL) {
         cout << "no history yet" << endl;
         continue;

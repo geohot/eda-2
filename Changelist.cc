@@ -56,7 +56,7 @@ void Changelist::SerializeToXML(ostringstream& out) {
   for (ChangelistIterator it = changes_.begin(); it != changes_.end(); ++it) {
     out << "<change>";
     out << "<address>" << it->first->get_name() << "</address>";
-    out << "<value>" << (int)it->second << "</value>";
+    out << "<value>" << std::hex << (int)it->second << "</value>";
     out << "</change>";
   }
   out << "</changes>";

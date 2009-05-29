@@ -1,0 +1,49 @@
+.opblock {
+	width: 60px;
+	float: left;		/*what does this do?*/
+}
+
+.opcode {
+	color: navy;
+}
+
+.flags {
+	color: purple;
+}
+
+.register {
+	color: #A03327;
+}
+
+.immed {
+	color: green;
+}
+
+.location {
+	color: gray;
+}
+
+.codebox {
+	background-color: white;
+	-webkit-box-shadow: 4px 4px 4px gray;
+	border: 1px solid black;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	padding-right: 4px;
+	color: navy;
+	width: auto;
+	font: 14px Lucida Console;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.address {
+	float: left;
+	width: 120px;
+}
+
+html {
+	background-color: #E8FAFF;
+	font: 14px Lucida Console;
+}

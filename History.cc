@@ -16,12 +16,12 @@ using namespace eda;
 void History::AddCommited(Changelist* cl) {
   changelists_[cl->get_changelist_number()] = cl;
 
-  modifiers_[cl->get_owner()].push_back(cl->get_changelist_number());
+  owned_[cl->get_owner()].push_back(cl->get_changelist_number());
 
   ChangelistIterator it;
   cl->get_first_change(&it);
   do {
-    modified_[it->first].push_back(cl->get_changelist_number());
+    xrefs_[it->first].push_back(cl->get_changelist_number());
   } while(cl->get_next_change(&it));
   LOG(INFO) << "pushed " << cl->get_changelist_number();
 }
@@ -36,17 +36,17 @@ Changelist* History::get_changelist(int changelist_number) {
 
 // These need to turn into XML
 
-vector<int>* History::get_modifiers(Address *a) {
-  map<Address*, vector<int> >::iterator it = modifiers_.find(a);
-  if (it != modifiers_.end())
+vector<int>* History::get_owned(Address *a) {
+  map<Address*, vector<int> >::iterator it = owned_.find(a);
+  if (it != owned_.end())
     return &it->second;
   else
     return NULL;
 }
 
-vector<int>* History::get_modified(Address *a) {
-  map<Address*, vector<int> >::iterator it = modified_.find(a);
-  if (it != modified_.end())
+vector<int>* History::get_xrefs(Address *a) {
+  map<Address*, vector<int> >::iterator it = xrefs_.find(a);
+  if (it != xrefs_.end())
     return &it->second;
   else
     return NULL;

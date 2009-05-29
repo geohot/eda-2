@@ -18,13 +18,18 @@ class FactoryOwner {
 public:
   FactoryOwner();
   bool HandleGetRequest(const std::vector<std::string>& argv, std::string* out);
+  bool HandlePostRequest(const std::vector<std::string>& argv, std::string* out);
   bool HandleEvalRequest(const std::vector<std::string>& argv, std::string* out);
-private:
+  bool HandleReadRequest(const std::vector<std::string>& argv, std::string* out);
+  bool HandleStepRequest(const std::vector<std::string>& argv, std::string* out);
+  bool HandleDisassembleRequest(const std::vector<string>& argv, std::string* out);
+
+  Memory memory_;   // I also own the memory
   ChangelistFactory changelist_factory_;
+private:
   // Something has got to be done about the InstructionFactories
   // REGISTER_ARCH macro or something
-  InstructionFactoryARM instruction_factory_arm_;
-  Memory memory_;   // I also own the memory
+  InstructionFactory* instruction_factory_;
 };
 
 }

@@ -16,7 +16,11 @@
 namespace eda {
 
 const std::string kXMLHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+#ifdef WIN32
+const std::string kDataDirectory = "..\\eda-2\\Data\\";
+#else
 const std::string kDataDirectory = "../eda-2/Data/";
+#endif
 
 // Returns things like 9 and 0x4F
 std::string immed(uint32_t data);
@@ -24,6 +28,8 @@ std::string immed(uint32_t data);
 std::string immed_signed(int32_t data);
 
 uint32_t stoi(const std::string& num);
+
+std::string MakeWellFormedXML(const std::string& in);
 
 bool file_to_string(const std::string& filename, std::string* out);
 
@@ -51,7 +57,7 @@ void StringSplit(const char* a, const std::string& in, std::vector<std::string>*
 
 #define INFO 0
 #define WARNING 1
-#define ERROR 2
+//#define ERROR 2
 
 class Logging {
 public:

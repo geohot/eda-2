@@ -6,6 +6,7 @@
 // StatelessChangelist could conceptually be a base class of Changelist
 
 #include "data_atomic.h"
+#include "util.h"
 
 #include <string>
 
@@ -39,10 +40,10 @@ void StatelessChangelist::SerializeToXML(ostringstream& out) {
   out << "<stateless>";
   for (StatelessChangelistIterator it = changes_.begin(); it != changes_.end(); ++it) {
     out << "<change>";
-    out << "<target>" << it->first.first << "</target>";
-    out << "<condition>" << it->first.second << "</condition>";
+    out << "<target>" << MakeWellFormedXML(it->first.first) << "</target>";
+    out << "<condition>" << MakeWellFormedXML(it->first.second) << "</condition>";
     out << "<bytes>" << it->second.first << "</bytes>";
-    out << "<value>" << it->second.second << "</value>";
+    out << "<value>" << MakeWellFormedXML(it->second.second) << "</value>";
     out << "</change>";
   }
   out << "</stateless>";

@@ -26,6 +26,19 @@ uint32_t eda::stoi(const string& num) {
   return ret;
 }
 
+std::string eda::MakeWellFormedXML(const std::string& in) {
+  string ret;
+  for(int i = 0; i<in.length(); i++) {
+    switch(in[i]) {
+      case '>': ret += "&gt;"; break;
+      case '<': ret += "&lt;"; break;
+      case '&': ret += "&amp;"; break;
+      default: ret+=in[i]; break;
+    }
+  }
+  return ret;
+}
+
 bool eda::file_to_string(const std::string& filename, std::string* out) {
   FILE* f = fopen(filename.c_str(), "rb");
   if (f==0) return false;

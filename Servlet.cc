@@ -96,6 +96,7 @@ template <class T> bool Servlet<T>::RunLoop() {
 
     string out;
     if(ProcessRequest(data, &out)) {
+      out = "HTTP/1.1 200\n\n" + out;
       send(client_socket_, out.data(), out.size(), 0);
       LOG(INFO) << "Reply sent";
     }

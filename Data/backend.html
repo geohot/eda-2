@@ -2,16 +2,32 @@
 <head>
 <title>EDA Backend</title>
 <script src="Data/backend.js"></script>
+<link rel="stylesheet" type="text/css" href="Data/backend.css" />
+<style>
+#rendered {
+	position: absolute;
+	left: 600px;
+	top: 20px;
+}
+#registers {
+	position: absolute;
+	left: 400px;
+	top: 20px;
+}
+</style>
 </head>
 <body>
 <h2>EDA Backend Mini Frontend</h2>
-<input type="text" id="command" value="EVAL"/>
-<input type="text" id="address" value="[`R0`]"/>
+<div id="rendered" class="codebox"></div>
+<div id="registers" class="codebox"></div>
+<input type="text" id="command" value="READ"/>
+<input type="text" size=80 id="address" value="Address/[`PC`]-8/Instruction/Parsed"/>
 <br/>
 <input type="text" id="data"/>
 <br/>
 <input type="button" value="Go" onclick="send_request()"/>
+<input type="button" value="Step" onclick="send_step_request()"/>
 <br/><br/>
-<textarea cols=40 rows=10 id="response"></textarea>
+<textarea cols=80 rows=50 id="response"></textarea>
 </body>
 </html>
