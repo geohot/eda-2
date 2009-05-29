@@ -79,6 +79,12 @@ const int opcodes_flags[16] = {
 
 const string shifts_absolute[4] = { "<<", ">>", ">>>", ">/>" };
 
+const string coprocessors[16] = { "P0", "P1", "P2", "P3", "P4", "P5", "P6",
+                "P7", "P8", "P9", "P10", "P11", "P12", "P13", "P14", "P15" };
+
+const string cp_registers[16] = { "C0", "C1", "C2", "C3", "C4", "C5", "C6",
+                "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14", "C15" };
+
 }
 
 #endif

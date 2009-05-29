@@ -264,6 +264,49 @@ Address* InstructionFactoryARM::Process(Address* start) {
         change->add_change("`LR`", cond, 4, "[`PC`]+4");
       }
       break;
+    case 6: // CoProcessor load/store & double register transfers
+      //TODO : LDC(2)/STC(2)
+      break;
+    case 7: // CoProcessor data processing & register transfers , Software Interrupt
+      if((opcode >> 24) == 0xff) // Undefined Instruction
+        break;
+      else if(((opcode >> 24) & 0xf) == 0xf) { // Software Interrupt
+        formatstring = "OC I";
+        args.push_back("SWI");
+        args.push_back(condXX);
+        args.push_back(immed(opcode & 0xffffff));
+        break;
+      }
+      // CoProcessor data processing & register transfers
+      bool cp_register_transfers = (opcode >> 4) & 1;
+      short crm = opcode & 0xf;
+      short cp_num = (opcode >> 8) & 0xf;
+      short from_cp = (opcode >> 20) & 1; // MCR or MRC
+      short cp_opcode_1 = cp_register_transfers ?
+          ((opcode >> 21) & 7) : ((opcode >> 20) & 0xf);
+      short cp_opcode_2 = (opcode >> 5) & 7;
+      bool cp_v2 = ((opcode >> 28) == 0xf); // Only ARMv5 and above
+
+      formatstring = cp_v2 ? "O" : "OC";
+      formatstring += " o, I, R, o, o";
+
+      if(!cp_register_transfers || (cp_opcode_2 != 0))
+        formatstring += ", I";
+
+      string cp_instruction =
+          (cp_register_transfers ? (from_cp ? "MRC" : "MCR") : "CDP");
+      if(cp_v2) cp_instruction += "2";
+      args.push_back(cp_instruction);
+
+      if(!cp_v2) args.push_back(condXX);
+      args.push_back(coprocessors[cp_num]);
+      args.push_back(immed(cp_opcode_1));
+      args.push_back(Rd);
+      args.push_back(cp_registers[(opcode >> 16) & 0xF]);
+      args.push_back(cp_registers[crm]);
+      if(!cp_register_transfers || (cp_opcode_2 != 0))
+        args.push_back(immed(cp_opcode_2));
+      break;
   }
 
   //cout << "changedPC: " << changedPC << endl;
