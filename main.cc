@@ -62,11 +62,17 @@ int main(int argc, char* argv[]) {
   Address* PC = f.memory_.ResolveToAddress(0,"`PC`");
   PC->set32(1, 0x400008);
 
+  f.memory_.AllocateSegment(0, 0x40000);
+
+  f.memory_.AllocateSegment(0xf4300000, 0x100);
+  f.memory_.AllocateSegment(0xf4400000, 0x100);
+
 
   s.RegisterCommandHandler("GET", &f, &FactoryOwner::HandleGetRequest);
   s.RegisterCommandHandler("EVAL", &f, &FactoryOwner::HandleEvalRequest);
   s.RegisterCommandHandler("READ", &f, &FactoryOwner::HandleReadRequest);
   s.RegisterCommandHandler("STEP", &f, &FactoryOwner::HandleStepRequest);
+  s.RegisterCommandHandler("RENAME", &f, &FactoryOwner::HandleRenameRequest);
   s.RegisterCommandHandler("DISASSEMBLE", &f, &FactoryOwner::HandleDisassembleRequest);
   s.StartServer(8080);
 

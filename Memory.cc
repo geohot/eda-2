@@ -11,6 +11,14 @@
 
 namespace eda {
 
+void Memory::Rename(Address* address, const string& name) {
+  if(address->get_name().length() != 0) {
+    named_.erase(named_.find(address->get_name()));
+  }
+  address->set_name(name);
+  named_.insert(make_pair(name, address));
+}
+
 Address* Memory::AllocateSegment(uint32_t address_32, int length) {
   vector<Address*>* ts = AllocateSegment(length);
 
@@ -20,6 +28,7 @@ Address* Memory::AllocateSegment(uint32_t address_32, int length) {
     ostringstream name;
     name << "unk_" << hex << (address_32+l);
     (*ts)[l]->set_name(name.str());
+    (*ts)[l]->set_location(address_32+l);
     named_.insert(make_pair(name.str(), (*ts)[l]));
   }
 
@@ -38,7 +47,7 @@ vector<Address*>* Memory::AllocateSegment(int length) {
   vector<Address*>* ts = new vector<Address*>(length);
 
   for (int l = 0; l < length; l++) {
-    (*ts)[l] = new Address();
+    (*ts)[l] = new Address(this);
   }
 
   // Setup the next pointers

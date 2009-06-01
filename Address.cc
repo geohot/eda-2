@@ -7,6 +7,26 @@
 
 namespace eda {
 
+void Address::SerializeToXML(ostringstream& out) {
+  out << "<Address>" << std::hex;
+  out << "<name>" << name_ << "</name>";
+  if(location_ != 0xFFFFFFFF) {
+    out << "<location>" << location_ << "</location>";
+  }
+  out << "<values>";
+  for(map<int, uint8_t>::iterator it = datamap_.begin(); it != datamap_.end(); ++it) {
+    if(it->first != 0) {
+      uint32_t data;
+      get32(it->first, &data);
+      out << std::dec << "<C_" << it->first << ">" << std::hex << data << "</C_" << std::dec << it->first << ">";
+    }
+  }
+  out << "</values>";
+  if(instruction_ != NULL)
+    instruction_->SerializeToXML(out);
+  out << "</Address>";
+}
+
 Address* Address::get8(int changelist_number, uint8_t* data) {
   if(changelist_number == 0)    // 0 is a link to the latest changelist
     (*data) = datamap_.rbegin()->second;
@@ -64,6 +84,14 @@ bool Address::set_name(const string& name) {
 
 const string& Address::get_name() {
   return name_;
+}
+
+void Address::set_location(uint32_t location) {
+  location_ = location;
+}
+
+uint32_t Address::get_location() {
+  return location_;
 }
 
 }

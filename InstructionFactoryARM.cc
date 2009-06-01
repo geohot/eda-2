@@ -18,7 +18,29 @@ using namespace ARM;
 
 void InstructionFactoryARM::InitRegisters(Memory* m) {
   for (int i = 0; i < 18; i++)
-    m->AllocateSegment(registers[i], 4);
+    registers_.push_back(make_pair(registers[i], m->AllocateSegment(registers[i], 4)));
+  program_counter_ = m->get_address_by_name("PC");
+  link_register_ = m->get_address_by_name("LR");
+  stack_pointer_ = m->get_address_by_name("SP");
+}
+
+// Could go in InstructionFactory
+void InstructionFactoryARM::StateToXML(std::ostringstream& out) {
+  out << std::hex;
+  out << "<Core>";
+  out << "<ProgramCounter>" << GetProgramCounter() << "</ProgramCounter>";
+  //out << "<LinkRegister>" << GetLinkRegister() << "</LinkRegister>";
+  out << "<StackPointer>" << GetStackPointer() << "</StackPointer>";
+  out << "<registers>";
+
+  for(vector<pair<string, Address*> >::iterator it = registers_.begin(); it!=registers_.end(); ++it) {
+    uint32_t data;
+    it->second->get32(0, &data);
+    out << "<" << it->first << ">" << data << "</" << it->first << ">";
+  }
+
+  out << "</registers>";
+  out << "</Core>";
 }
 
 // I think this is my fifth one of these...haha
@@ -43,9 +65,11 @@ Address* InstructionFactoryARM::Process(Address* start) {
   string Rm = registers[ (opcode >> 0) & 0xF ];
 
   // Extract immediate data
-  string immed24 =
-    immed_signed( ((opcode & 0x7FFFFF) << 2) - ((opcode & 0x800000)?0x2000000:0) );
-  string immed12 = immed(opcode & 0xFFF);
+  int immed24_numeric = ((opcode & 0x7FFFFF) << 2) - ((opcode & 0x800000)?0x2000000:0);
+  string immed24 = immed_signed( immed24_numeric );
+
+  int immed12_numeric = opcode & 0xFFF;
+  string immed12 = immed( immed12_numeric );
 
   string immed8 = immed( ror( (opcode & 0xFF), ((opcode >> 8) & 0xF) * 2) );
 
@@ -105,6 +129,7 @@ Address* InstructionFactoryARM::Process(Address* start) {
   int reglist = opcode & 0xFFFF;
   int rnum = 0;
   int offset = 0;
+  uint32_t data;
 
   switch (cmdint) {
     case 0:   // DPIS + DPRS
@@ -175,12 +200,14 @@ Address* InstructionFactoryARM::Process(Address* start) {
       break;
     case 2:   //LSIO
     case 3:   //LSRO
-      formatstring += "FOFC R, [R, ";
+      formatstring += "FOFC R, ";
       args.push_back(load?"LD":"ST");
       args.push_back("R");
       args.push_back(byte?"B":"");
       args.push_back(condXX);
       args.push_back(Rd);
+
+      formatstring += "[R, ";
       args.push_back(Rn);
 
       changesource = "[`"+Rn+"`]";
@@ -200,6 +227,16 @@ Address* InstructionFactoryARM::Process(Address* start) {
         changesource += "[`"+Rm+"`]" + shift + immedshift;
       }
       formatstring += "]";
+
+      // Second PC Hack
+      // immed12 may not be the only choice
+      if(Rn == "PC" && start->memory_->get_address_by_location((start->get_location() + immed12_numeric + 8)) != NULL) {  // Shouldn't be a string compare
+        formatstring = "FOFC R, =I";
+        LOG(INFO) << "location is " << std::hex << (start->get_location() + immed12_numeric + 8);
+        start->memory_->get_address_by_location((start->get_location() + immed12_numeric + 8))->get32(0, &data);
+        args[5] = immed(data);
+      }
+
       if(load) {
         if(byte) {
           change->add_change("`"+Rd+"`", cond, 1, "["+changesource+"]");
@@ -236,6 +273,8 @@ Address* InstructionFactoryARM::Process(Address* start) {
           args.push_back(registers[rnum]);
           if(load)
             change->add_change("`"+registers[rnum]+"`", cond,4, "[[`"+Rn+"`]+"+immed(offset)+"]");
+          else
+            change->add_change("[`"+Rn+"`]+"+immed(offset), cond, 4, "[`"+registers[rnum]+"`]");
           if (increment) offset += 4;
           else offset -= 4;
         }
@@ -256,7 +295,9 @@ Address* InstructionFactoryARM::Process(Address* start) {
       args.push_back("B");
       args.push_back(link?"L":"");
       args.push_back(condXX);
-      args.push_back(immed24);
+      //args.push_back(immed24);
+      // One PC Hack
+      args.push_back(immed(start->get_location() + immed24_numeric + 8));
 
       change->add_change("`PC`",  cond, 4, "[`PC`]+8+"+immed24);
       changedPC = true;

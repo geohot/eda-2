@@ -18,6 +18,8 @@
 // provided for debugging only, or not
 // /Eval/
 
+#include <iomanip>
+
 #include "debug.h"
 
 #include "util.h"
@@ -54,9 +56,9 @@ bool FactoryOwner::HandlePostRequest(const std::vector<string>& argv, std::strin
 
 // Read because a browser can't see these
 bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::string* out) {
-  if(argv[0] == "Address" && argv.size() >= 3) {
+  if(argv[0] == "Address" && argv.size() >= 2) {
     Address* a = memory_.ResolveToAddress(0, argv[1]);
-    if (a != 0) {
+    if (a != 0 && argv.size() >= 3) {
       if(argv[2] == "Name") {
         (*out) += a->get_name();
       } else if(argv[2] == "Owned") {
@@ -81,6 +83,8 @@ bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::strin
             a->get_instruction()->parsed_->SerializeToXML(ss);
           else if(argv[3] == "StatelessChangelist")
             a->get_instruction()->change_->SerializeToXML(ss);
+        } else if(a->get_instruction() != NULL) {
+          a->get_instruction()->SerializeToXML(ss);
         } else {
           ss << "<failure></failure>";
         }
@@ -88,6 +92,11 @@ bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::strin
       } else {
         return false;
       }
+    } else if(a != 0) {
+      ostringstream ss;
+      ss << kXMLHeader;
+      a->SerializeToXML(ss);
+      (*out) += ss.str();
     } else {
       LOG(INFO) << "Address not found";
       return false;
@@ -102,6 +111,27 @@ bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::strin
     else
       ss << "<failure></failure>";
     (*out) = ss.str();
+  } else if(argv[0] == "State") {
+    ostringstream ss;
+    ss << kXMLHeader;
+    ss << "<State>";
+    instruction_factory_->StateToXML(ss);
+    ss << "<currentchangelistnumber>" << changelist_factory_.get_current_changelist_number() << "</currentchangelistnumber>";
+    ss << "</State>";
+    (*out) = ss.str();
+  } else if(argv[0] == "Memory" && argv.size() >= 4) {
+    // Dump memory raw
+    Address* a = memory_.get_address_by_location(stoi(argv[1]));
+    int len = stoi(argv[2]);
+    int clnum = stoi(argv[3]);
+    ostringstream ss;
+
+    for(int i = 0; i < len; i++) {
+      uint8_t data;
+      a = a->get8(clnum, &data);
+      ss << setfill('0') << setw(2) << hex << (int)data;
+    }
+    (*out) = ss.str();
   }
   return true;
 }
@@ -113,6 +143,15 @@ bool FactoryOwner::HandleEvalRequest(const std::vector<string>& argv, std::strin
     (*out) = ss.str();
   } else {
     return false;
+  }
+  return true;
+}
+
+bool FactoryOwner::HandleRenameRequest(const std::vector<string>& argv, std::string* out) {
+  if(argv[0] == "Address" && argv.size() >= 3) {
+    Address* a = memory_.ResolveToAddress(0, argv[1]);
+    LOG(INFO) << "Renaming " << a->get_name() << " to " << argv[2];
+    memory_.Rename(a, argv[2]);
   }
   return true;
 }

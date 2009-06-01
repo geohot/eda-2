@@ -15,20 +15,28 @@ function send_request() {
 }
 
 function send_reg_request() {
-  var registers = ["R0","R1","R2","R3","R4","R5","R6","R7","R8","R9","R10","R11","R12","SP","LR","PC"];
+  /*var registers = ["R0","R1","R2","R3","R4","R5","R6","R7","R8","R9","R10","R11","R12","SP","LR","PC","CPSR"];
   var out = "";
   for(r in registers) {
     var ret = xx("EVAL", "[`"+registers[r]+"`]", "");
     out += registers[r]+": "+ret.html+"<br/>";
   }
+  document.getElementById("registers").innerHTML=out;*/
+  var out = "";
+  var registers = xx("READ","State","").xml.documentElement.getElementsByTagName("registers")[0];
+  for(r in registers.childNodes) {
+    if(registers.childNodes[r].childNodes != null)
+      out += registers.childNodes[r].nodeName+": "+registers.childNodes[r].childNodes[0].nodeValue+"<br/>";
+  }
   document.getElementById("registers").innerHTML=out;
 }
 
 function send_step_request() {
+  var ret2 = xx("READ", "Address/[`PC`]-8/Instruction/Parsed", "");
+
   var ret = xx("STEP", "Address/[`PC`]-8", "");
   document.getElementById("response").value = view_xml(ret.xml.documentElement, 0);
 
-  var ret2 = xx("READ", "Address/[`PC`]-8/Instruction/Parsed", "");
   document.getElementById("rendered").innerHTML += '<span class="address">'+ret.xml.getElementsByTagName("owner")[0].childNodes[0].nodeValue+": "+'</span>';
   document.getElementById("rendered").innerHTML += ParsedInstructionToHTML(ret2.xml.documentElement);
 

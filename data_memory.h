@@ -32,6 +32,11 @@ public:
   Address* get_address_by_location(uint32_t address_32);
   Address* get_address_by_name(const string& name);
 
+  // Rename an Address
+  // Could move to Address, but then it would need to know what Memory owns it
+
+  void Rename(Address* address, const std::string& name);
+
   // Commit a changelist to Memory
   // Also add it to the history
   void Commit(Changelist* change);

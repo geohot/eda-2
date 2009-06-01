@@ -19,6 +19,12 @@ class InstructionFactoryARM : public InstructionFactory {
 public:
   Address* Process(Address* start);
   void InitRegisters(Memory* m);
+  void StateToXML(std::ostringstream& out);
+  // Convert raw register to real instruction pointer
+  uint32_t TranslateProgramCounter(uint32_t in) {
+    // ARM PC is 8 ahead of the real program counter
+    return in-8;
+  }
 };
 
 namespace ARM {

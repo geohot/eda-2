@@ -56,7 +56,7 @@ void ParsedInstruction::SerializeToXML(ostringstream& out) {
     web_lookup_.insert(make_pair('P', "location"));
     web_lookup_.insert(make_pair('p', "immed"));
   }
-  out << "<parsedinstruction>";
+  out << "<ParsedInstruction>";
   int vpos = 0;
   bool lastformatting = false;
   for (int i = 0; i < format_.length(); i++) {
@@ -66,11 +66,13 @@ void ParsedInstruction::SerializeToXML(ostringstream& out) {
         out << "</formatting>";
         lastformatting = false;
       }
-      out << "<atom>";
-      out << "<type>" << it->second << "</type>";
-      out << "<data>" << args_[vpos] << "</data>";
+      if(args_[vpos].length() != 0) {
+        out << "<atom>";
+        out << "<type>" << it->second << "</type>";
+        out << "<data>" << args_[vpos] << "</data>";
+        out << "</atom>";
+      }
       vpos++;
-      out << "</atom>";
     } else {
       if(lastformatting==false) {
         out << "<formatting>";
@@ -84,5 +86,5 @@ void ParsedInstruction::SerializeToXML(ostringstream& out) {
     lastformatting = false;
   }
 
-  out << "</parsedinstruction>";
+  out << "</ParsedInstruction>";
 }

@@ -22,6 +22,7 @@ public:
   bool HandleEvalRequest(const std::vector<std::string>& argv, std::string* out);
   bool HandleReadRequest(const std::vector<std::string>& argv, std::string* out);
   bool HandleStepRequest(const std::vector<std::string>& argv, std::string* out);
+  bool HandleRenameRequest(const std::vector<std::string>& argv, std::string* out);
   bool HandleDisassembleRequest(const std::vector<string>& argv, std::string* out);
 
   Memory memory_;   // I also own the memory

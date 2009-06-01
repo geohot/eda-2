@@ -27,6 +27,33 @@ public:
   // instruction should be null when passed in
   // Returns the address after the end of this instruction
   virtual Address* Process(Address* start) = 0;
+
+  virtual void StateToXML(std::ostringstream& out) = 0;
+
+  // This is the instruction that is currently running
+  uint32_t GetProgramCounter() {
+    uint32_t ret;
+    program_counter_->get32(0, &ret);
+    return TranslateProgramCounter(ret);
+  }
+
+  uint32_t GetStackPointer() {
+    uint32_t ret;
+    stack_pointer_->get32(0, &ret);
+    return ret;
+  }
+
+  // This is extended for different archs to get the real program counter
+  virtual uint32_t TranslateProgramCounter(uint32_t in) {
+    return in;
+  }
+
+  Address* program_counter_;
+  Address* link_register_;
+  Address* stack_pointer_;
+  vector<pair<std::string, Address*> > registers_;
+private:
+
 };
 
 // This creates changelists
@@ -40,6 +67,9 @@ public:
   // Used by the Core
   Changelist* CreateFromStatelessChangelist(Address* owner, StatelessChangelist& in,
                                      Memory* state);
+  inline int get_current_changelist_number() {
+    return current_changelist_number_;
+  }
 private:
   // This is incremented every time a changelist is created
   // It starts out at zero

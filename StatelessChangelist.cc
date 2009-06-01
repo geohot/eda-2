@@ -37,7 +37,7 @@ int StatelessChangelist::get_size() {
 }
 
 void StatelessChangelist::SerializeToXML(ostringstream& out) {
-  out << "<stateless>";
+  out << "<StatelessChangelist>";
   for (StatelessChangelistIterator it = changes_.begin(); it != changes_.end(); ++it) {
     out << "<change>";
     out << "<target>" << MakeWellFormedXML(it->first.first) << "</target>";
@@ -46,5 +46,5 @@ void StatelessChangelist::SerializeToXML(ostringstream& out) {
     out << "<value>" << MakeWellFormedXML(it->second.second) << "</value>";
     out << "</change>";
   }
-  out << "</stateless>";
+  out << "</StatelessChangelist>";
 }
