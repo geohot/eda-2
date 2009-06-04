@@ -241,6 +241,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
   }
   if(error == true) {
     LOG(WARNING) << "Error in parser: " << stateless << "[" << string_location << "]";
+    return 0xFFFFFFF;
   }
   //INFO << "got " << std::hex << retval << endl;
   return retval;

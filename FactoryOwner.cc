@@ -101,6 +101,26 @@ bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::strin
       LOG(INFO) << "Address not found";
       return false;
     }
+  } else if(argv[0] == "Function" && argv.size() >= 2) {
+    Address* a = memory_.ResolveToAddress(0, argv[1]);
+    if(a != NULL && a->get_instruction() != NULL) {
+      set<Address*> addresses;
+      a->get_instruction()->GetFunction(&addresses);
+      ostringstream ss;
+      ss << kXMLHeader;
+      ss << "<Function>";
+      if(argv.size() >= 3 && argv[2] == "List") {
+        for(set<Address*>::iterator it = addresses.begin(); it != addresses.end(); ++it) {
+          ss << std::hex << "<location>" << (*it)->get_location() << "</location>";
+        }
+      } else {
+        for(set<Address*>::iterator it = addresses.begin(); it != addresses.end(); ++it) {
+          (*it)->SerializeToXML(ss);
+        }
+      }
+      ss << "</Function>";
+      (*out) = ss.str();
+    }
   } else if(argv[0] == "Changelist" && argv.size() >= 2) {
     Changelist* c = memory_.history_.get_changelist(stoi(argv[1]));
 

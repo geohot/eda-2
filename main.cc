@@ -62,6 +62,8 @@ int main(int argc, char* argv[]) {
   Address* PC = f.memory_.ResolveToAddress(0,"`PC`");
   PC->set32(1, 0x400008);
 
+  f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
+
   f.memory_.AllocateSegment(0, 0x40000);
 
   f.memory_.AllocateSegment(0xf4300000, 0x100);

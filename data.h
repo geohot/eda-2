@@ -10,6 +10,7 @@
 #define EDA_DATA_H_
 
 #include <map>
+#include <set>
 
 #include "data_atomic.h"
 
@@ -36,23 +37,28 @@ public:
     length_(length) {}
   // This should have a destructor that destroys parsed_ and stateless_
   void SerializeToXML(std::ostringstream& out);
+
+  void GetFunction(std::set<Address*>* addresses);
 //private:
+
+
+  // Metadata should be updated by the running too
 
   // All instructions that this instruction can accept control from
   // If > 1, this instruction begins a basic block
   // Conditional linked branches have to be dealt with
-  std::vector<Instruction*> control_inputs_;
+  std::vector<Address*> control_inputs_;
 
   // All instructions that this instruction can hand control to
   // Used for building a control flow graph
   // flag if this is a linked output, or a return output
-  std::vector<Instruction*> control_outputs_;
+  std::vector<Address*> control_outputs_;
 
   // Returns from functions
-  std::vector<Instruction*> control_indirect_inputs_;
+  std::vector<Address*> control_indirect_inputs_;
 
   // In here if this is a linked branch or a return
-  std::vector<Instruction*> control_indirect_outputs_;
+  std::vector<Address*> control_indirect_outputs_;
 
   ParsedInstruction* parsed_;
   StatelessChangelist* change_;
@@ -88,6 +94,10 @@ public:
   Address* set8(int changelist_number, uint8_t data);
   Address* set16(int changelist_number, uint16_t data);
   Address* set32(int changelist_number, uint32_t data);
+
+  // Clear this memory location
+  void Clear();
+  void Clear32();
 
   // Operators to walk you through the address list
   //Address* operator++ (Address*);

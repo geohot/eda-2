@@ -24,6 +24,8 @@ namespace eda {
 
 class Address;    // Can't actually call address
 
+
+//                                           LHS     Condition    Bytes Value
 #define StatelessChangelistIterator map<pair<string, string>, pair<int, string> >::iterator
 
 // This is a changelist that is "position independent" and "state independent"

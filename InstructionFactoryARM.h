@@ -21,9 +21,14 @@ public:
   void InitRegisters(Memory* m);
   void StateToXML(std::ostringstream& out);
   // Convert raw register to real instruction pointer
-  uint32_t TranslateProgramCounter(uint32_t in) {
+  uint32_t TranslateToProgramCounter(uint32_t in) {
     // ARM PC is 8 ahead of the real program counter
     return in-8;
+  }
+
+  uint32_t TranslateFromProgramCounter(uint32_t in) {
+    // ARM PC is 8 ahead of the real program counter
+    return in+8;
   }
 };
 

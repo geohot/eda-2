@@ -9,6 +9,7 @@ SET(EDA_SRCS
 ./Changelist.cc
 ./ChangelistFactory.cc
 ./StatelessChangelist.cc
+./InstructionFactory.cc
 ./InstructionFactoryARM.cc
 ./Memory.cc
 ./util.cc

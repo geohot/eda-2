@@ -7,6 +7,18 @@
 
 namespace eda {
 
+void Address::Clear() {
+  datamap_.clear();
+  datamap_.insert(make_pair(0,0));
+}
+
+void Address::Clear32() {
+  Clear();
+  next_->Clear();
+  next_->next_->Clear();
+  next_->next_->next_->Clear();
+}
+
 void Address::SerializeToXML(ostringstream& out) {
   out << "<Address>" << std::hex;
   out << "<name>" << name_ << "</name>";

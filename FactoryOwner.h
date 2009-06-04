@@ -27,10 +27,11 @@ public:
 
   Memory memory_;   // I also own the memory
   ChangelistFactory changelist_factory_;
+
+  InstructionFactory* instruction_factory_;
 private:
   // Something has got to be done about the InstructionFactories
   // REGISTER_ARCH macro or something
-  InstructionFactory* instruction_factory_;
 };
 
 }

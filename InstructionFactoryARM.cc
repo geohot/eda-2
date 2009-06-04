@@ -232,7 +232,7 @@ Address* InstructionFactoryARM::Process(Address* start) {
       // immed12 may not be the only choice
       if(Rn == "PC" && start->memory_->get_address_by_location((start->get_location() + immed12_numeric + 8)) != NULL) {  // Shouldn't be a string compare
         formatstring = "FOFC R, =I";
-        LOG(INFO) << "location is " << std::hex << (start->get_location() + immed12_numeric + 8);
+        //LOG(INFO) << "location is " << std::hex << (start->get_location() + immed12_numeric + 8);
         start->memory_->get_address_by_location((start->get_location() + immed12_numeric + 8))->get32(0, &data);
         args[5] = immed(data);
       }
@@ -303,6 +303,7 @@ Address* InstructionFactoryARM::Process(Address* start) {
       changedPC = true;
       if(link) {
         change->add_change("`LR`", cond, 4, "[`PC`]+4");
+        change->add_change("`PC`", "0", 4, "[`PC`]+4");   // Never actually happens, but you know, I'm hacking
       }
       break;
     case 6: // CoProcessor load/store & double register transfers

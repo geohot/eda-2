@@ -34,7 +34,7 @@ public:
   uint32_t GetProgramCounter() {
     uint32_t ret;
     program_counter_->get32(0, &ret);
-    return TranslateProgramCounter(ret);
+    return TranslateToProgramCounter(ret);
   }
 
   uint32_t GetStackPointer() {
@@ -44,9 +44,16 @@ public:
   }
 
   // This is extended for different archs to get the real program counter
-  virtual uint32_t TranslateProgramCounter(uint32_t in) {
+  virtual uint32_t TranslateToProgramCounter(uint32_t in) {
     return in;
   }
+
+  virtual uint32_t TranslateFromProgramCounter(uint32_t in) {
+    return in;
+  }
+
+  void FastAnalyse(Memory* m, Address* start);
+  void FastAnalyseRecurse(Memory* m, Address* location, Address* temp_program_counter, int* changelist_number);
 
   Address* program_counter_;
   Address* link_register_;
