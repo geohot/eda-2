@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.6)
+INCLUDE (CheckLibraryExists)
 
 #to get sources if added
 #find -name "*.cc"
@@ -24,5 +25,11 @@ SET(EDA_SRCS
 #INCLUDE_DIRECTORIES(./include/)
 ADD_LIBRARY(eda_lib ${EDA_SRCS})
 ADD_EXECUTABLE(eda main.cc)
-TARGET_LINK_LIBRARIES(eda eda_lib wsock32)
 
+SET(EXTRALIBS "")
+CHECK_LIBRARY_EXISTS(wsock32 WSAStartup "" HAVE_LIBWSOCK32)
+IF(HAVE_LIBWSOCK32)
+  SET(EXTRALIBS ${EXTRALIBS} "wsock32")
+ENDIF(HAVE_LIBWSOCK32)
+
+TARGET_LINK_LIBRARIES(eda eda_lib ${EXTRALIBS})

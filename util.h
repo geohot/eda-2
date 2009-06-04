@@ -57,7 +57,10 @@ void StringSplit(const char* a, const std::string& in, std::vector<std::string>*
 
 #define INFO 0
 #define WARNING 1
-//#define ERROR 2
+#ifndef WIN32
+// This is a problem on windows
+#define ERROR 2
+#endif
 
 class Logging {
 public:
