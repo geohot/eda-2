@@ -172,6 +172,7 @@ Address* InstructionFactoryARM::Process(Address* start) {
         changesource += op;
         operand += immed8;
       }
+      operand += ")";
       if (!(opcodes_flags[opint] & F_NS)) { // If not No set
         change->add_change("`"+Rd+"`", cond, 4, changesource+operand);
       }
@@ -180,16 +181,16 @@ Address* InstructionFactoryARM::Process(Address* start) {
       //cout << "updateflags: " << updateflags << endl;
       if (updateflags) {
         string flags = "([`CPSR`] & 0x0FFFFFFF)";
-        flags += " | ((" + changesource + ") & 0x80000000)";   // N
-        flags += " | (((" + changesource + ")==0)<<30)";      // Z
+        flags += " | ((" + changesource + ")) & 0x80000000)";   // N
+        flags += " | (((" + changesource + "))==0)<<30)";      // Z
         if (opint == 2 || opint == 6 | opint == 10) {  // SUB or SBC or CMP
-          flags += " | (([`"+Rn+"`] < " + operand +") << 29)";
+          flags += " | (([`"+Rn+"`] < (" + operand +") << 29)";
         }
         else if (opint == 3 || opint == 7) {  // RSB or RSC
-          flags += " | (([`"+Rn+"`] > " + operand +") << 29)";
+          flags += " | (([`"+Rn+"`] > (" + operand +") << 29)";
         }
         else if (opint == 4 || opint == 5 || opint == 11) {  // ADD, ADC, or CMN
-          flags += " | ((([`"+Rn+"`] >> 2) & ((" + operand + ") >> 2)) & 0x2000000)";
+          flags += " | ((([`"+Rn+"`] >> 2) & (((" + operand + ") >> 2)) & 0x2000000)";
         }
 
         // C is damn confusing

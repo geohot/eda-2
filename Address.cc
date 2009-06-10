@@ -5,6 +5,8 @@
 
 #include "data.h"
 
+#include "util.h"
+
 namespace eda {
 
 void Address::Clear() {
@@ -23,7 +25,7 @@ void Address::SerializeToXML(ostringstream& out) {
   out << "<Address>" << std::hex;
   out << "<name>" << name_ << "</name>";
   if(location_ != 0xFFFFFFFF) {
-    out << "<location>" << location_ << "</location>";
+    out << "<location>" << immed(location_) << "</location>";
   }
   out << "<values>";
   for(map<int, uint8_t>::iterator it = datamap_.begin(); it != datamap_.end(); ++it) {

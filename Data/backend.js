@@ -23,7 +23,7 @@ function send_reg_request() {
   }
   document.getElementById("registers").innerHTML=out;*/
   var out = "";
-  var registers = xx("READ","State","").xml.documentElement.getElementsByTagName("registers")[0];
+  var registers = xx("READ","/State","").xml.documentElement.getElementsByTagName("registers")[0];
   for(r in registers.childNodes) {
     if(registers.childNodes[r].childNodes != null)
       out += registers.childNodes[r].nodeName+": "+registers.childNodes[r].childNodes[0].nodeValue+"<br/>";
@@ -32,9 +32,9 @@ function send_reg_request() {
 }
 
 function send_step_request() {
-  var ret2 = xx("READ", "Address/[`PC`]-8/Instruction/Parsed", "");
+  var ret2 = xx("READ", "/Address/[`PC`]-8/Instruction/Parsed", "");
 
-  var ret = xx("STEP", "Address/[`PC`]-8", "");
+  var ret = xx("STEP", "/Address/[`PC`]-8", "");
   document.getElementById("response").value = view_xml(ret.xml.documentElement, 0);
 
   document.getElementById("rendered").innerHTML += '<span class="address">'+ret.xml.getElementsByTagName("owner")[0].childNodes[0].nodeValue+": "+'</span>';
@@ -45,9 +45,9 @@ function send_step_request() {
 
 function view_xml(element, depth) {
   if(element.nodeName == null) return "";
-  if(element.nodeName == "parsedinstruction") {
+  /*if(element.nodeName == "ParsedInstruction") {
     document.getElementById("rendered").innerHTML += ParsedInstructionToHTML(element);
-  }
+  }*/
   var i;
   var ret = "";
   for(i = 0; i < depth; i++) ret += " ";

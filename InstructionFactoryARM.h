@@ -75,7 +75,7 @@ const string opcodes_absolute[16] = {
 // NF is no first(Rn)
 //AND XOR SUB RSB    ADD ADC SBC  RSC   TST TEQ CMP CMN ORR MOV BIC  MVN
 //                        C   C    C    NS  NS  NS  NS      NF       NF
-  "&","^","-","*-1+","+","+","-","*-1+","&","^","-","+","|","", "&~","~"
+  "&(","^(","-(","*-1+(","+(","+(","-(","*-1+(","&(","^(","-(","+(","|(","(", "&(~","(~"
 };
 
 #define F_C 1

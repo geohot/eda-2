@@ -1,0 +1,96 @@
+.opblock {
+	width: 60px;
+	float: left;		/*what does this do?*/
+}
+
+.opcode {
+	color: indigo;
+}
+
+.flags {
+	color: purple;
+}
+
+.register {
+	color: #A03327;
+}
+
+.immed {
+	color: green;
+}
+
+.location {
+	color: gray;
+}
+
+.codebox {
+	background-color: white;
+	-webkit-box-shadow: 4px 4px 4px gray;
+	border: 1px solid black;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	padding-right: 4px;
+	color: navy;
+	width: auto;
+	font: 14px Lucida Console;
+	display: inline-block;
+	vertical-align: top;
+}
+
+.location_index {
+	float: left;
+	width: 120px;
+}
+
+.location_name {
+	color: gray;
+}
+
+html {
+	font: 14px Lucida Console;
+}
+
+.changelistnumber {
+	color: black;
+}
+
+.expand {
+	float: left;
+	width: 12px;
+	text-align: center;
+	color: #333333;
+	background-color: #E0E0E0;
+}
+
+.data {
+	float: left;
+	width: 80px;
+	color: blue;
+}
+
+#xrefs {
+	position: absolute;
+	top: 100px;
+	left: 60%;
+}
+
+#debug {
+	position: absolute;
+	left: 60%;
+	top: 60%;
+}
+
+#flatfile {
+	border: 2px solid black;
+	width: 50%;
+	height: 896px;		/*14px * 0x20*/
+	overflow: hidden;
+}
+
+#registers {
+	position: absolute;
+	left: 80%;
+	top: 100px;
+	border: 1px solid gray;
+}

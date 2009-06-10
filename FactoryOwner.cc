@@ -39,11 +39,13 @@ FactoryOwner::FactoryOwner() {
 bool FactoryOwner::HandleGetRequest(const std::vector<string>& argv, std::string* out) {
   if(argv.size() == 0) {
     //(*out) += "<html><head><title>EDA</title></head><body>I am an EDA backend, go talk to a frontend</body></html>";
-    File::ReadFileToString(kDataDirectory + "backend.html", out);
+    File::ReadFileToString(kDataDirectory + "index.html", out);
   } else if(argv[0] == "favicon.ico") {
     File::ReadFileToString(kDataDirectory + argv[0], out);
   } else if(argv[0] == "Data" && argv.size() >= 2) {
-    File::ReadFileToString(kDataDirectory + argv[1], out);
+    string filename = kDataDirectory + argv[1];
+    for(int i = 2; i < argv.size(); i++) filename += "\\" + argv[i];
+    File::ReadFileToString(filename, out);
   } else
     (*out) += "<html><head><title>EDA</title></head><body><h1>Resource not found</h1></body></html>";
   return true;

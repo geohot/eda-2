@@ -1,0 +1,30 @@
+<html>
+<head>
+<title>EDA</title>
+<!--Same as the C++ util-->
+<script src="script/util.js"></script>
+<!--All communication with the server comes through here-->
+<script src="script/communication.js"></script>
+<!--This handles all movement of the page-->
+<script src="script/movement.js"></script>
+<!--This lays out the functions-->
+<script src="script/layout.js"></script>
+<!--All actions go through here-->
+<script src="script/actions.js"></script>
+<!--Handles all methods of selection-->
+<script src="script/selection.js"></script>
+
+<link rel="stylesheet" type="text/css" href="style/eda.css" />
+</head>
+<body>
+<input onclick="send_step_request()" value="Step" type="button"></input>
+<div id="flatfile" style="">
+</div>
+<div id="debug">
+</div>
+<div id="xrefs">
+</div>
+<div id="registers">
+</div>
+</body>
+</html>
