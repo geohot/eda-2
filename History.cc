@@ -8,8 +8,8 @@
 // modified_ maps Addresses to changelists that changed them
 // I could map right to changelists themselves, but the numbers way is cleaner
 
-#include "util.h"
 #include "data.h"
+#include "util.h"
 
 using namespace eda;
 

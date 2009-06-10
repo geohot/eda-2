@@ -5,6 +5,7 @@
 //
 // Various functions to assist debugging
 
+#include "data.h"
 #include "debug.h"
 
 #include <iostream>

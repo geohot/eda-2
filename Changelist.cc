@@ -8,8 +8,6 @@
 #include <iostream>
 #include <iomanip>
 
-#include "data_atomic.h"
-
 #include "data.h"
 
 namespace eda {

@@ -3,12 +3,13 @@
 // part of "The Embedded Disassembler"
 //  released under GPLv3, see http://gplv3.fsf.org/
 
+#include <cstdio>
 #include <string>
 #include <sstream>
 #include <iomanip>
 
-#include "util.h"
 #include "data.h"
+#include "util.h"
 
 using namespace std;
 using namespace eda;

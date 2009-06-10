@@ -3,7 +3,7 @@
 // part of "The Embedded Disassembler"
 //  released under GPLv3, see http://gplv3.fsf.org/
 
-#include "data_atomic.h"
+#include "data.h"
 
 #include <map>
 #include <string>

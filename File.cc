@@ -3,6 +3,9 @@
 // part of "The Embedded Disassembler"
 //  released under GPLv3, see http://gplv3.fsf.org/
 
+#include <cstdio>
+
+#include "data.h"
 #include "File.h"
 #include "util.h"
 

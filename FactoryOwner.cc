@@ -20,6 +20,7 @@
 
 #include <iomanip>
 
+#include "data.h"
 #include "debug.h"
 
 #include "util.h"
