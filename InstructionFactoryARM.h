@@ -65,6 +65,8 @@ const string conditions_absolute[16] = {
   N+"^"+V,
   //GT, Z clear and either N set and V set or N clear and V clear
   "~"+Z+"&~("+N+"^"+V+")",
+  //LE, Z set and either N set and V clear or N set and V clear
+  Z+"|("+N+"^"+V+")",
   "1",
   "1"
 };

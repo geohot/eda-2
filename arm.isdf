@@ -1,0 +1,287 @@
+# ARM Instruction Set Descriptor File
+#   by geohot
+# part of "The Embedded Disassembler"
+#
+# This is the first of many Instruction Set Descriptor Files
+# And yes, I'm making this shit up as I go along
+# Quantity and simplicity beats short impossible to understand
+# I am feeling pythony today
+
+# Registers is a reserved keyword
+Registers R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 SP LR PC CPSR SPSR
+InstructionLength 32
+
+# Special Strings
+ProgramCounter [`PC`]-8
+StackPointer [`SP`]
+
+Z (([`CPSR`] >> 30) & 1)
+C (([`CPSR`] >> 29) & 1)
+N (([`CPSR`] >> 31) & 1)
+V (([`CPSR`] >> 28) & 1)
+
+# Instruction Comprehesions start here
+# An instruction runs through all matching until it hits Stop
+# * is don't care
+# spaces are ignored
+# any lowercase letter is a local variable
+# Stop, Change32, Change16, Change8, DefaultChange, Parsed, Registers are special words
+# Everything else is a string, with all whitespace stripped
+# Curly braces mean insert variable, undeclared vars are empty
+
+# Parsed
+#   Parsed can be recursive, use percent to insert
+#   |...| is eval string to hex
+
+# DefaultChanges apply to the inverse condition of anything targeting the target
+# If that makes sense at all
+
+####DefaultChanges####
+
+DefaultChange `PC` [`PC`]+4
+
+####Conditions####
+
+0000**** ******** ******** ********
+  Condition {Z}
+  ConditionString EQ
+
+0001**** ******** ******** ********
+  Condition ~{Z}
+  ConditionString NE
+
+0010**** ******** ******** ********
+  Condition {C}
+  ConditionString HS
+
+0011**** ******** ******** ********
+  Condition ~{C}
+  ConditionString LO
+
+0100**** ******** ******** ********
+  Condition {N}
+  ConditionString MI
+
+0101**** ******** ******** ********
+  Condition ~{N}
+  ConditionString PL
+
+0110**** ******** ******** ********
+  Condition {V}
+  ConditionString VS
+
+0111**** ******** ******** ********
+  Condition ~{V}
+  ConditionString VC
+
+1000**** ******** ******** ********
+  Condition {C}&~{Z}
+  ConditionString HI
+
+1001**** ******** ******** ********
+  Condition {Z}|~{C}
+  ConditionString LS
+
+1010**** ******** ******** ********
+  Condition ~({N}^{V})
+  ConditionString GE
+
+1011**** ******** ******** ********
+  Condition {N}^{V}
+  ConditionString LT
+
+1100**** ******** ******** ********
+  Condition ~(Z)&~({N}^{V})
+  ConditionString GT
+
+1101**** ******** ******** ********
+  Condition {Z}&({N}^{V})
+  ConditionString LE
+
+1110**** ******** ******** ********
+  Condition 1
+
+1111**** ******** ******** ********
+  Condition 1
+
+####ShifterOperands####
+
+# 32-bit immediate
+**** 001 **** * **** **** rrrr iiiiiiii
+  ShifterOperand {i} >/> {r}*2
+  Parsed "#I" |ShifterOperand|
+
+# Shifts
+**** 0** **** * **** **** ***** 00 * ****
+  Shift <<
+  ShiftString LSL
+
+**** 0** **** * **** **** ***** 01 * ****
+  Shift >>
+  ShiftString LSR
+
+**** 0** **** * **** **** ***** 10 * ****
+  Shift >>>
+  ShiftString ASR
+
+**** 0** **** * **** **** ***** 11 * ****
+  Shift >/>
+  ShiftString ROR
+
+# Immediate shifts
+**** 000 **** * **** **** iiiii ** 0 rrrr
+  ShifterOperand [`{{r}]}`] {Shift} {i}
+  Parsed "R o #I" {{r}]} {ShiftString} {|i|}
+
+# Register shifts
+**** 000 **** * **** **** ssss 0 ** 1 rrrr
+  ShifterOperand [`{{r}]}`] {Shift} [`{{s}]}`]
+  Parsed "R o R" {{r}]} {ShiftString} {{s}]}
+
+####Opcodes####
+**** 00* 0000 * nnnn **** ************
+  Opcode [`{{n}}`] & {ShifterOperand}
+  OpcodeString AND
+
+**** 00* 0001 * nnnn **** ************
+  Opcode [`{{n}}`] ^ {ShifterOperand}
+  OpcodeString XOR
+
+**** 00* 0010 * nnnn **** ************
+  Opcode [`{{n}}`] - {ShifterOperand}
+  OpcodeString SUB
+
+**** 00* 0011 * nnnn **** ************
+  Opcode {ShifterOperand} - [`{{n}]}`]
+  OpcodeString RSB
+
+**** 00* 0100 * nnnn **** ************
+  Opcode [`{{n}}`] + {ShifterOperand}
+  OpcodeString ADD
+
+**** 00* 0101 * nnnn **** ************
+  Opcode [`{{n}}`] + {ShifterOperand} + {C}
+  OpcodeString ADC
+
+**** 00* 0110 * nnnn **** ************
+  Opcode [`{{n}}`] - {ShifterOperand} - (~{C})
+  OpcodeString SBC
+
+**** 00* 0111 * nnnn **** ************
+  Opcode {ShifterOperand} - [`{{n}}`] - (~{C})
+  OpcodeString RSC
+
+**** 00* 1000 * nnnn **** ************
+  Opcode [`{{n}}`] & {ShifterOperand}
+  OpcodeString TST
+
+**** 00* 1001 * nnnn **** ************
+  Opcode [`{{n}}`] ^ {ShifterOperand}
+  OpcodeString TEQ
+
+**** 00* 1010 * nnnn **** ************
+  Opcode [`{{n}}`] - {ShifterOperand}
+  OpcodeString CMP
+
+**** 00* 1011 * nnnn **** ************
+  Opcode [`{{n}}`] + {ShifterOperand}
+  OpcodeString CMN
+
+**** 00* 1100 * nnnn **** ************
+  Opcode [`{{n}}`] | {ShifterOperand}
+  OpcodeString ORR
+
+**** 00* 1101 * nnnn **** ************
+  Opcode {ShifterOperand}
+  OpcodeString MOV
+
+**** 00* 1110 * nnnn **** ************
+  Opcode [`{{n}}`] & (~{ShifterOperand})
+  OpcodeString BIC
+
+**** 00* 1111 * nnnn **** ************
+  Opcode (~{ShifterOperand})
+  OpcodeString MVN
+
+####Instructions####
+
+# Do flags update
+# TODO: Add C and V
+# Probably add to opcodes themselves
+**** 00* **** 1 **** **** ************
+  Change32 `CPSR` ([`CPSR`] & 0x0FFFFFFF) | ({Opcode}&0x80000000) | (({Opcode}==0)<<30)
+  FlagString S
+  
+**** 00* **** * nnnn dddd ************
+  Change32 `{{d}]}` Opcode
+  Parsed "OFC R, R, %" {OpcodeString} {FlagString} {ConditionString} {{d}]} {{n}]}
+  Stop
+
+####AddressingModes####
+# AddressingMode still needs to be derefed
+
+# Set sign to minus
+**** 01** 0 * * * nnnn **** ************
+  Sign "-"
+
+# Load and Store Word or Unsigned Byte - Immediate Offset
+**** 0101 * * 0 * nnnn **** iiiiiiiiiiii
+  AddressingMode [`{{n}}`] + ({Sign}{i})
+  Parsed "[R, #{Sign}I]" {{n}} |i|
+
+# Load and Store Word or Unsigned Byte - (Scaled) Register offset
+**** 0111 * * 0 * nnnn **** iiiii**0 mmmm
+  AddressingMode [`{{n}}`] + ({Sign}([`{{m}})`] {Shift} {i})
+  Parsed "[R, {Sign}R o #I]" {{n}} {{m}} {ShiftString} {|i|}
+
+# Pre-indexed
+**** 01*1 * * 1 * nnnn **** ************
+  Change32 `{{n}}` AddressingMode
+  Parsed "%!"
+
+# Load and Store Word or Unsigned Byte - Immediate post-indexed
+**** 0100 * * 0 * nnnn **** iiiiiiiiiiii
+  AddressingMode [`{{n}}`] + ({Sign}{i})
+  Parsed "[R], #{Sign}I" {{n}} |i|
+
+# Load and Store Word or Unsigned Byte - (Scaled) Register post-indexed
+**** 0110 * * 0 * nnnn **** iiiii**0 mmmm
+  AddressingMode [`{{n}}`]
+  Change32 `{(n)]}` [`{(n)]}`] + ({Sign}([`{{m}})`] {Shift} {i})
+  Parsed "[R], {Sign}R o #I" {{n}} {{m}} {ShiftString} {|i|}
+
+# Load
+**** 01** * 0 * 1 **** dddd ************
+  Change32 `{{d}}` [{AddressingMode}]
+  Parsed "OC R, %" LDR {ConditionString} {{d}}
+  Stop
+
+**** 01** * 1 * 1 **** dddd ************
+  Change8 `{{d}}` [{AddressingMode}]
+  Parsed "OC R, %" LDRB {ConditionString} {{d}}
+  Stop
+
+# Store
+**** 01** * 0 * 0 **** dddd ************
+  Change32 {AddressingMode} [`{{d}]}`]
+  Parsed "OC R, %" STR {ConditionString} {{d}}
+  Stop
+
+**** 01** * 1 * 0 **** dddd ************
+  Change8 {AddressingMode} [`{{d}}`]
+  Parsed "OC R, %" STRB {ConditionString} {{d}}
+  Stop
+
+####Branches####
+
+# Link
+**** 1011 ************************
+  Change32 `LR` [`PC`]
+  FlagString L
+
+# Branch
+**** 1010 siiiiiiiiiiiiiiiiiiiiiii
+  TargetOffset ({i} << 2) - ({s} << 25)
+  Change32 `PC` [`PC`] + {TargetOffset}
+  Parsed "OFC P" B {FlagString} {ConditionString} {{d}} {|TargetOffset|}
+  Stop

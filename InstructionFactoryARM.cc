@@ -181,8 +181,8 @@ Address* InstructionFactoryARM::Process(Address* start) {
       //cout << "updateflags: " << updateflags << endl;
       if (updateflags) {
         string flags = "([`CPSR`] & 0x0FFFFFFF)";
-        flags += " | ((" + changesource + ")) & 0x80000000)";   // N
-        flags += " | (((" + changesource + "))==0)<<30)";      // Z
+        flags += " | (((" + changesource + operand + ")) & 0x80000000)";   // N
+        flags += " | ((((" + changesource + operand + "))==0)<<30)";      // Z
         if (opint == 2 || opint == 6 | opint == 10) {  // SUB or SBC or CMP
           flags += " | (([`"+Rn+"`] < (" + operand +") << 29)";
         }
@@ -207,8 +207,11 @@ Address* InstructionFactoryARM::Process(Address* start) {
       args.push_back(byte?"B":"");
       args.push_back(condXX);
       args.push_back(Rd);
+      if(preincrement)
+        formatstring += "[R, ";
+      else
+        formatstring += "[R], ";
 
-      formatstring += "[R, ";
       args.push_back(Rn);
 
       changesource = "[`"+Rn+"`]";
@@ -227,7 +230,8 @@ Address* InstructionFactoryARM::Process(Address* start) {
         else args.push_back("-"+immedshift);
         changesource += "[`"+Rm+"`]" + shift + immedshift;
       }
-      formatstring += "]";
+      if(preincrement)
+        formatstring += "]";
 
       // Second PC Hack
       // immed12 may not be the only choice
@@ -249,7 +253,12 @@ Address* InstructionFactoryARM::Process(Address* start) {
             change->add_change("`"+Rd+"`", cond, 4, "["+changesource+"]");
         }
       } else {  //store
-        change->add_change(changesource, cond, byte?1:4, "[`"+Rd+"`]");
+        if(preincrement) {
+          change->add_change(changesource, cond, byte?1:4, "[`"+Rd+"`]");
+        } else {
+          change->add_change("[`"+Rn+"`]", cond, byte?1:4, "[`"+Rd+"`]");
+          change->add_change("`"+Rn+"`", cond, byte?1:4, changesource);
+        }
       }
       break;
     case 4: //LSM

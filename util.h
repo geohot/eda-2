@@ -22,6 +22,12 @@ const std::string kDataDirectory = "..\\eda-2\\Data\\";
 const std::string kDataDirectory = "../eda-2/Data/";
 #endif
 
+#ifdef WIN32
+const std::string kBaseDirectory = "..\\eda-2\\";
+#else
+const std::string kBaseDirectory = "../eda-2/";
+#endif
+
 // Returns things like 9 and 0x4F
 std::string immed(uint32_t data);
 // Signed

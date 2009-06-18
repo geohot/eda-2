@@ -11,6 +11,7 @@ SET(EDA_SRCS
 ./StatelessChangelist.cc
 ./InstructionFactory.cc
 ./InstructionFactoryARM.cc
+./InstructionFactoryISDF.cc
 ./Memory.cc
 ./util.cc
 ./debug.cc

@@ -21,14 +21,14 @@ class MemoryManager {
 class InstructionFactory {
 public:
   // Sets up the addresses of the registers
-  virtual void InitRegisters(Memory *m) = 0;
+  virtual void InitRegisters(Memory *m) { }
 
   // Parses an instruction
   // instruction should be null when passed in
   // Returns the address after the end of this instruction
   virtual Address* Process(Address* start) = 0;
 
-  virtual void StateToXML(std::ostringstream& out) = 0;
+  virtual void StateToXML(std::ostringstream& out) { }
 
   // This is the instruction that is currently running
   uint32_t GetProgramCounter() {

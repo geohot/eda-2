@@ -147,9 +147,8 @@ window.addEventListener("click", function(e) {
     e.target.innerHTML = "-";
     var parent = e.target.parentNode;
     var ihtml = '<div class="expansion">';
-
     if(parent.className == "address") {
-
+      ihtml += '<div class="changelistnumber"><span class="expand" style="margin-left: 30px">+</span>Stateless</div>';
       var xml = xx("READ", "/Address/"+parent.id+"/Owned","").xml.documentElement;
       for(i in xml.childNodes) {
         if(xml.childNodes[i].nodeName=="number") {
@@ -158,17 +157,32 @@ window.addEventListener("click", function(e) {
         }
       }
     } else if(parent.className == "changelistnumber") {
-      ihtml += '<div class="changelist" style="margin-left: 60px">';
-      var xml = xx("READ", "/Changelist/"+parent.childNodes[1].nodeValue,"").xml.documentElement;
-      var changes = xml.getElementsByTagName("changes")[0];
-      for(i in changes.childNodes) {
-        if(changes.childNodes[i].nodeName == "change") {
-          ihtml += '<span class="changetarget">' + changes.childNodes[i].childNodes[0].childNodes[0].nodeValue + '</span>'
-          ihtml += "=";
-          ihtml += '<span class="changesource">' + changes.childNodes[i].childNodes[1].childNodes[0].nodeValue + '</span><br/>'
+      if(parent.childNodes[1].nodeValue == "Stateless") {
+        // Draw stateless changelist
+        var changes = xx("READ", "/Address/"+parent.parentNode.parentNode.id+"/Instruction/StatelessChangelist").xml.documentElement;
+        ihtml += '<div class="changelist" style="margin-left: 60px">';
+        for(i in changes.childNodes) {
+          if(changes.childNodes[i].nodeName == "change") {
+            ihtml += '<span class="changetarget">' + changes.childNodes[i].childNodes[0].childNodes[0].nodeValue + '</span>'
+            ihtml += '<span class="changecondition">(' + changes.childNodes[i].childNodes[1].childNodes[0].nodeValue + ')</span>'
+            ihtml += "=";
+            ihtml += '<span class="changesource">' + changes.childNodes[i].childNodes[3].childNodes[0].nodeValue + '</span><br/>'
+          }
         }
+        ihtml += '</div>';
+      } else {
+        ihtml += '<div class="changelist" style="margin-left: 60px">';
+        var xml = xx("READ", "/Changelist/"+parent.childNodes[1].nodeValue,"").xml.documentElement;
+        var changes = xml.getElementsByTagName("changes")[0];
+        for(i in changes.childNodes) {
+          if(changes.childNodes[i].nodeName == "change") {
+            ihtml += '<span class="changetarget">' + changes.childNodes[i].childNodes[0].childNodes[0].nodeValue + '</span>'
+            ihtml += "=";
+            ihtml += '<span class="changesource">' + changes.childNodes[i].childNodes[1].childNodes[0].nodeValue + '</span><br/>'
+          }
+        }
+        ihtml += '</div>';
       }
-      ihtml += '</div>';
     }
 
 

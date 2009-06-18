@@ -21,6 +21,7 @@
 
 #include "InstructionFactoryARM.h"
 
+#include "InstructionFactoryISDF.h"
 
 using namespace std;
 using namespace eda;
@@ -55,12 +56,14 @@ int main(int argc, char* argv[]) {
   signal(SIGINT, quitproc);
   signal(SIGQUIT, quitproc);
 #endif
+  InstructionFactoryISDF("arm.isdf");
 
-  Address* me = f.memory_.AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
-  load_file(&f.memory_, &f.changelist_factory_, me, "bootrom", 0x400000);
+  /*Address* me = f.memory_.AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
+  //load_file(&f.memory_, &f.changelist_factory_, me, "bootrom", 0x400000);
+  load_file(&f.memory_, &f.changelist_factory_, me, "iboot", 0x18000000);
 
   Address* PC = f.memory_.ResolveToAddress(0,"`PC`");
-  PC->set32(1, 0x400008);
+  PC->set32(1, 0x18000008);
 
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
 
@@ -76,7 +79,7 @@ int main(int argc, char* argv[]) {
   s.RegisterCommandHandler("STEP", &f, &FactoryOwner::HandleStepRequest);
   s.RegisterCommandHandler("RENAME", &f, &FactoryOwner::HandleRenameRequest);
   s.RegisterCommandHandler("DISASSEMBLE", &f, &FactoryOwner::HandleDisassembleRequest);
-  s.StartServer(8080);
+  s.StartServer(8080);*/
 
   return 0;
 }
