@@ -44,6 +44,7 @@ int find_matching(const std::string& s, int start, char open, char close);
 void SerializeToXML(std::ostringstream& out, const std::vector<int>* v, std::string name, std::string item);
 
 void StringSplit(const char* a, const std::string& in, std::vector<std::string>* argv);
+void StringSplit(char a, const std::string& in, std::vector<std::string>* argv);
 
 // LOG(INFO)
 // LOG(ERROR)
@@ -63,6 +64,7 @@ void StringSplit(const char* a, const std::string& in, std::vector<std::string>*
 
 #define INFO 0
 #define WARNING 1
+#define DEBUG 3
 #ifndef WIN32
 // This is a problem on windows
 #define ERROR 2

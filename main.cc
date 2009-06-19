@@ -56,11 +56,18 @@ int main(int argc, char* argv[]) {
   signal(SIGINT, quitproc);
   signal(SIGQUIT, quitproc);
 #endif
-  InstructionFactoryISDF("arm.isdf");
+  Address* me = f.memory_.AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
 
-  /*Address* me = f.memory_.AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
+  Address* test = f.memory_.AllocateSegment("test", 8);
+  test->set32(1, 0xE1A00000);
+
+  InstructionFactoryISDF a("arm.isdf", &f.memory_);
+
+  a.Process(test);
+
+
   //load_file(&f.memory_, &f.changelist_factory_, me, "bootrom", 0x400000);
-  load_file(&f.memory_, &f.changelist_factory_, me, "iboot", 0x18000000);
+/*  load_file(&f.memory_, &f.changelist_factory_, me, "iboot", 0x18000000);
 
   Address* PC = f.memory_.ResolveToAddress(0,"`PC`");
   PC->set32(1, 0x18000008);

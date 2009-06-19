@@ -21,7 +21,7 @@ class MemoryManager {
 class InstructionFactory {
 public:
   // Sets up the addresses of the registers
-  virtual void InitRegisters(Memory *m) { }
+  virtual void InitRegisters(Memory *m) { };
 
   // Parses an instruction
   // instruction should be null when passed in

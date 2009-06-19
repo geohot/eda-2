@@ -26,7 +26,8 @@ V (([`CPSR`] >> 28) & 1)
 # * is don't care
 # spaces are ignored
 # any lowercase letter is a local variable
-# Stop, Change32, Change16, Change8, DefaultChange, Parsed, Registers are special words
+# DefaultChange, Registers are special global words
+# Stop, Change, Parsed are special local words
 # Everything else is a string, with all whitespace stripped
 # Curly braces mean insert variable, undeclared vars are empty
 
@@ -39,7 +40,7 @@ V (([`CPSR`] >> 28) & 1)
 
 ####DefaultChanges####
 
-DefaultChange `PC` [`PC`]+4
+DefaultChange 32 `PC` [`PC`]+4
 
 ####Conditions####
 
@@ -131,13 +132,13 @@ DefaultChange `PC` [`PC`]+4
 
 # Immediate shifts
 **** 000 **** * **** **** iiiii ** 0 rrrr
-  ShifterOperand [`{{r}]}`] {Shift} {i}
-  Parsed "R o #I" {{r}]} {ShiftString} {|i|}
+  ShifterOperand [`{{r}}`] {Shift} {i}
+  Parsed "R o #I" {{r}} {ShiftString} {|i|}
 
 # Register shifts
 **** 000 **** * **** **** ssss 0 ** 1 rrrr
-  ShifterOperand [`{{r}]}`] {Shift} [`{{s}]}`]
-  Parsed "R o R" {{r}]} {ShiftString} {{s}]}
+  ShifterOperand [`{{r}}`] {Shift} [`{{s}}`]
+  Parsed "R o R" {{r}} {ShiftString} {{s}}
 
 ####Opcodes####
 **** 00* 0000 * nnnn **** ************
@@ -153,7 +154,7 @@ DefaultChange `PC` [`PC`]+4
   OpcodeString SUB
 
 **** 00* 0011 * nnnn **** ************
-  Opcode {ShifterOperand} - [`{{n}]}`]
+  Opcode {ShifterOperand} - [`{{n}}`]
   OpcodeString RSB
 
 **** 00* 0100 * nnnn **** ************
@@ -210,12 +211,12 @@ DefaultChange `PC` [`PC`]+4
 # TODO: Add C and V
 # Probably add to opcodes themselves
 **** 00* **** 1 **** **** ************
-  Change32 `CPSR` ([`CPSR`] & 0x0FFFFFFF) | ({Opcode}&0x80000000) | (({Opcode}==0)<<30)
+  Change 32 `CPSR` ([`CPSR`] & 0x0FFFFFFF) | ({Opcode}&0x80000000) | (({Opcode}==0)<<30)
   FlagString S
-  
+
 **** 00* **** * nnnn dddd ************
-  Change32 `{{d}]}` Opcode
-  Parsed "OFC R, R, %" {OpcodeString} {FlagString} {ConditionString} {{d}]} {{n}]}
+  Change 32 `{{d}}` {Opcode}
+  Parsed "OFC R, R, %" {OpcodeString} {FlagString} {ConditionString} {{d}} {{n}}
   Stop
 
 ####AddressingModes####
@@ -228,7 +229,7 @@ DefaultChange `PC` [`PC`]+4
 # Load and Store Word or Unsigned Byte - Immediate Offset
 **** 0101 * * 0 * nnnn **** iiiiiiiiiiii
   AddressingMode [`{{n}}`] + ({Sign}{i})
-  Parsed "[R, #{Sign}I]" {{n}} |i|
+  Parsed "[R, #{Sign}I]" {{n}} {|i|}
 
 # Load and Store Word or Unsigned Byte - (Scaled) Register offset
 **** 0111 * * 0 * nnnn **** iiiii**0 mmmm
@@ -237,7 +238,7 @@ DefaultChange `PC` [`PC`]+4
 
 # Pre-indexed
 **** 01*1 * * 1 * nnnn **** ************
-  Change32 `{{n}}` AddressingMode
+  Change 32 `{{n}}` AddressingMode
   Parsed "%!"
 
 # Load and Store Word or Unsigned Byte - Immediate post-indexed
@@ -248,28 +249,28 @@ DefaultChange `PC` [`PC`]+4
 # Load and Store Word or Unsigned Byte - (Scaled) Register post-indexed
 **** 0110 * * 0 * nnnn **** iiiii**0 mmmm
   AddressingMode [`{{n}}`]
-  Change32 `{(n)]}` [`{(n)]}`] + ({Sign}([`{{m}})`] {Shift} {i})
+  Change 32 `{(n)]}` [`{(n)]}`] + ({Sign}([`{{m}})`] {Shift} {i})
   Parsed "[R], {Sign}R o #I" {{n}} {{m}} {ShiftString} {|i|}
 
 # Load
 **** 01** * 0 * 1 **** dddd ************
-  Change32 `{{d}}` [{AddressingMode}]
+  Change 32 `{{d}}` [{AddressingMode}]
   Parsed "OC R, %" LDR {ConditionString} {{d}}
   Stop
 
 **** 01** * 1 * 1 **** dddd ************
-  Change8 `{{d}}` [{AddressingMode}]
+  Change 8 `{{d}}` [{AddressingMode}]
   Parsed "OC R, %" LDRB {ConditionString} {{d}}
   Stop
 
 # Store
 **** 01** * 0 * 0 **** dddd ************
-  Change32 {AddressingMode} [`{{d}]}`]
+  Change 32 {AddressingMode} [`{{d}}`]
   Parsed "OC R, %" STR {ConditionString} {{d}}
   Stop
 
 **** 01** * 1 * 0 **** dddd ************
-  Change8 {AddressingMode} [`{{d}}`]
+  Change 8 {AddressingMode} [`{{d}}`]
   Parsed "OC R, %" STRB {ConditionString} {{d}}
   Stop
 
@@ -277,12 +278,12 @@ DefaultChange `PC` [`PC`]+4
 
 # Link
 **** 1011 ************************
-  Change32 `LR` [`PC`]
+  Change 32 `LR` [`PC`]
   FlagString L
 
 # Branch
 **** 1010 siiiiiiiiiiiiiiiiiiiiiii
   TargetOffset ({i} << 2) - ({s} << 25)
-  Change32 `PC` [`PC`] + {TargetOffset}
+  Change 32 `PC` [`PC`] + {TargetOffset}
   Parsed "OFC P" B {FlagString} {ConditionString} {{d}} {|TargetOffset|}
   Stop

@@ -96,6 +96,17 @@ void eda::StringSplit(const char* a, const string& in, vector<string>* argv) {
   }
 }
 
+void eda::StringSplit(char a, const string& in, vector<string>* argv) {
+  size_t start=in.find_first_not_of(a,0);
+  size_t end=in.find_first_of(a, start);
+  while(end!=std::string::npos || start!=std::string::npos)
+  {
+    argv->push_back(in.substr(start,end-start));
+    start=in.find_first_not_of(a,end);
+    end=in.find_first_of(a, start);
+  }
+}
+
 // Returns things like 9 and 0x4F
 string eda::immed(uint32_t data) {
   ostringstream o;
@@ -123,5 +134,8 @@ eda::Logging::Logging(int level, const char* file, const char* pretty_function, 
     case 2:
       stream_ << file << "(" << line_number << ")--" << pretty_function << ": ";
       break;
+    case DEBUG:
+      stream_ << "DEBUG: ";
+
   }
 }
