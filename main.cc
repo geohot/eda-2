@@ -58,21 +58,19 @@ int main(int argc, char* argv[]) {
 #endif
   Address* me = f.memory_.AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
 
-  Address* test = f.memory_.AllocateSegment("test", 8);
-  test->set32(1, 0xE1A00000);
-
-  InstructionFactoryISDF a("arm.isdf", &f.memory_);
-
-  a.Process(test);
+  /*Address* test = f.memory_.AllocateSegment("test", 8);
+  test->set32(1, 0x465E);
+  InstructionFactoryISDF a("thumb.isdf", &f.memory_);
+  a.Process(test);*/
 
 
   //load_file(&f.memory_, &f.changelist_factory_, me, "bootrom", 0x400000);
-/*  load_file(&f.memory_, &f.changelist_factory_, me, "iboot", 0x18000000);
+  load_file(&f.memory_, &f.changelist_factory_, me, "ibec.dfu", 0x18000000);
 
   Address* PC = f.memory_.ResolveToAddress(0,"`PC`");
-  PC->set32(1, 0x18000008);
+  PC->set32(1, 0x1800F99C);
 
-  f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
+  //f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
 
   f.memory_.AllocateSegment(0, 0x40000);
 
@@ -86,7 +84,7 @@ int main(int argc, char* argv[]) {
   s.RegisterCommandHandler("STEP", &f, &FactoryOwner::HandleStepRequest);
   s.RegisterCommandHandler("RENAME", &f, &FactoryOwner::HandleRenameRequest);
   s.RegisterCommandHandler("DISASSEMBLE", &f, &FactoryOwner::HandleDisassembleRequest);
-  s.StartServer(8080);*/
+  s.StartServer(8080);
 
   return 0;
 }
@@ -110,7 +108,7 @@ int frontend_console() {
   Address* PC = m->ResolveToAddress(0,"`PC`");
 
   //INFO << "got PC" << endl;
-  PC->set32(1, 0x400008);
+  PC->set32(1, 0x1800F99C);
 
   Address* next_disassembly_address;
 

@@ -33,12 +33,14 @@ Changelist* ChangelistFactory::CreateFromStatelessChangelist(Address* owner, Sta
   StatelessChangelistIterator it;
   if (!in.get_first_change(&it)) return NULL;
   Changelist* out = new Changelist(current_changelist_number_, owner);
+  LOG(DEBUG) << "changelist is number " << current_changelist_number_;
   do {
     if (state->ResolveToNumber(current_changelist_number_, it->first.second) != 0) {   // Check the condition
       Address *target = state->ResolveToAddress(current_changelist_number_, it->first.first);
       uint32_t value = state->ResolveToNumber(current_changelist_number_, it->second.second);
       if (target != NULL) {
         for (int bc = 0; bc < it->second.first; bc++) {
+          //LOG(DEBUG) << "adding change " << target << " = " << (value&0xFF);
           out->add_change(target, value & 0xFF);
           target = target->get_next();
           value >>= 8;

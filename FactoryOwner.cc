@@ -26,14 +26,17 @@
 #include "util.h"
 #include "FactoryOwner.h"
 
+#include "InstructionFactoryISDF.h"
+
 #include "File.h"
 
 using namespace eda;
 using namespace std;
 
 FactoryOwner::FactoryOwner() {
-  instruction_factory_ = new InstructionFactoryARM;
-  instruction_factory_->InitRegisters(&memory_);
+  //instruction_factory_ = new InstructionFactoryARM;
+  instruction_factory_  = new InstructionFactoryISDF("thumb.isdf", &memory_);
+  //instruction_factory_->InitRegisters(&memory_);
 }
 
 // These are the things the web browser can render
@@ -187,8 +190,11 @@ bool FactoryOwner::HandleStepRequest(const std::vector<string>& argv, std::strin
         instruction_factory_->Process(a);
         LOG(INFO) << "Disassembled";
       }
-
-      Changelist* c = changelist_factory_.CreateFromStatelessChangelist(a, *(a->get_instruction()->change_), &memory_);
+      StatelessChangelist* slcl = a->get_instruction()->change_;
+      DebugPrint(slcl);
+      LOG(DEBUG) << "got address, creating changelist";
+      Changelist* c = changelist_factory_.CreateFromStatelessChangelist(a, *slcl, &memory_);
+      LOG(DEBUG) << "changelist created";
       memory_.Commit(c);
 
       ostringstream ss;

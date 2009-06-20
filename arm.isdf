@@ -9,6 +9,7 @@
 
 # Registers is a reserved keyword
 # Makes Registers_0 Registers_1 Registers_2... in global scope
+# Haha, that would've been nice if true
 Registers R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 SP LR PC CPSR SPSR
 InstructionLength 32
 
@@ -111,7 +112,7 @@ DefaultChange 32 `PC` [`PC`]+4
 # 32-bit immediate
 **** 001 **** * **** **** rrrr iiiiiiii
   ShifterOperand {i} >/> {r}*2
-  Parsed "#I" |ShifterOperand|
+  Parsed "#I" {|ShifterOperand|}
 
 # Shifts
 **** 0** **** * **** **** ***** 00 * ****

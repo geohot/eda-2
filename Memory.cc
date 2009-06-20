@@ -93,7 +93,8 @@ enum {
   OPER_NOT,
   OPER_EQU,
   OPER_GT,
-  OPER_LT
+  OPER_LT,
+  OPER_IF
 };
 
 // Recursive function for resolving stateless strings
@@ -154,6 +155,8 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
       case '|': oper = OPER_ORR; break;
       case '^': oper = OPER_XOR; break;
       case '~': oper = OPER_NOT; break;
+
+      case '?': oper = OPER_IF; break;
 
       case '=':
         if(stateless[++next_string_location] == '=') {
@@ -220,6 +223,8 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
         case OPER_XOR: retval^=lastval; break;
         case OPER_NOT: retval=~lastval; break;
 
+        case OPER_IF: if(!lastval) retval = 0;
+
         // 1 is equal
         // 0 if not equal
         case OPER_EQU: retval=(uint32_t)(retval==lastval); break;
@@ -260,9 +265,16 @@ Address* Memory::ResolveToAddress(int changelist_number, const string& stateless
 //This is the commit function
 //Add History functionality, and do it soon
 void Memory::Commit(Changelist* c) {
+  if(c == 0) {
+    LOG(INFO) << "can't check in null changelist";
+    return;
+  }
   LOG(INFO) << "commiting: " << c->get_changelist_number();
   ChangelistIterator it;
-  if(!c->get_first_change(&it)) return;
+  if(!c->get_first_change(&it)) {
+    LOG(INFO) << "can't check in empty changelist";
+    return;
+  }
   do {
     //INFO << "committing: " << it->second << endl;
     // OMG, History code

@@ -35,6 +35,7 @@ private:
   //All the InstructionComprehensions...yay!
   vector<InstructionComprehension*> instructioncomprehensions_;
 
+  map<string, pair<int, string> > default_changes_;
 
   // This is the global scope after a first read
   // Process makes a copy of this
@@ -68,7 +69,7 @@ private:
   // Number of bits
   int bitsize_;
 
-  // char is variable name, int is the offset from the left, uint32_t is the mask
+  // char is variable name, int is the offset from the left for rightmost bit, uint32_t is the mask
 
   map<char, pair<int, uint32_t> > local_scope_additions_;
 

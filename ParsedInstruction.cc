@@ -4,6 +4,7 @@
 //  released under GPLv3, see http://gplv3.fsf.org/
 
 #include "data.h"
+#include "util.h"
 
 #include <map>
 #include <string>
@@ -17,6 +18,7 @@ using namespace eda;
 // C -- condition
 // R -- register
 // I -- immed
+// S -- signed immed
 // P -- PC offset immed
 // p -- dereferenced PC offset immed
 
@@ -31,8 +33,13 @@ string ParsedInstruction::GetConsoleString() {
       case 'C':
       case 'R':
       case 'I':
+      case 'S':
       case 'P':
       case 'p':
+        if(vpos >= args_.size()) {
+          LOG(INFO) << "Error in parsed string \"" << format_ << "\" size is only " << args_.size();
+          break;
+        }
         out += args_[vpos];
         vpos ++;
         break;
@@ -53,6 +60,7 @@ void ParsedInstruction::SerializeToXML(ostringstream& out) {
     web_lookup_.insert(make_pair('C', "flags"));
     web_lookup_.insert(make_pair('R', "register"));
     web_lookup_.insert(make_pair('I', "immed"));
+    web_lookup_.insert(make_pair('S', "immed"));
     web_lookup_.insert(make_pair('P', "location"));
     web_lookup_.insert(make_pair('p', "immed"));
   }
@@ -62,6 +70,10 @@ void ParsedInstruction::SerializeToXML(ostringstream& out) {
   for (int i = 0; i < format_.length(); i++) {
     map<char, string>::iterator it = web_lookup_.find(format_[i]);
     if(it != web_lookup_.end()) {
+      if(vpos >= args_.size()) {
+        LOG(INFO) << "Error in parsed string \"" << format_ << "\" size is only " << args_.size();
+        break;
+      }
       if(lastformatting==true) {
         out << "</formatting>";
         lastformatting = false;

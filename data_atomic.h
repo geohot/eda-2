@@ -33,6 +33,7 @@ class Address;    // Can't actually call address
 // A StatelessData is now a string
 class StatelessChangelist {
 public:
+  StatelessChangelist() {}
   // This adds an assignment of the form
   // if(rhs.first)
   //   (lhs.second)lhs.first = rhs.second;
@@ -44,7 +45,8 @@ public:
   bool get_next_change(StatelessChangelistIterator* a);
   int get_size();
   void SerializeToXML(ostringstream& out);
-private:
+//private:
+  // int is bytecount, not bitcount
   map<pair<string, string>, pair<int, string> > changes_;
 };
 
@@ -95,7 +97,9 @@ class ParsedInstruction {
 public:
   // Is this valid c++?
   // Should be like printf for strings
-  ParsedInstruction() {}
+  ParsedInstruction() {
+    format_ = "";
+  }
   ParsedInstruction(const string& format, const vector<string>& args) : format_(format), args_(args) {}
   void SerializeToXML(ostringstream& out);
   string GetConsoleString();

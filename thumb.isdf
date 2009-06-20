@@ -1,0 +1,558 @@
+# Thumb Instruction Set Descriptor File
+#   by geohot
+# part of "The Embedded Disassembler"
+#
+# Number Two, let's do it syntax blind
+# In fact, theres so little syntax, yay!
+
+Registers R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 SP LR PC CPSR SPSR
+InstructionLength 16
+
+# Special Strings
+ProgramCounter [`PC`]-4
+StackPointer [`SP`]
+
+Z (([`CPSR`] >> 30) & 1)
+C (([`CPSR`] >> 29) & 1)
+N (([`CPSR`] >> 31) & 1)
+V (([`CPSR`] >> 28) & 1)
+
+# UpdateFlags is evaled in the presence of Operand
+UpdateFlags ([`CPSR`] & 0x0FFFFFFF) | (({Operand}) & 0x80000000) | ((({Operand})==0) << 30)
+Condition 1
+
+DefaultChange 32 `PC` [`PC`]+2
+
+# ADC
+010000 0101 mmm ddd
+  Parsed "O R, R" ADC {{d}} {{m}}
+  Operand [`{{d}}`] + [`{{m}}`] + {C}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# ADD(1)
+0001110 iii nnn ddd
+  Parsed "O R, R, #I" ADD {{d}} {{n}} {|{i}|}
+  Operand [`{{n}}`] + {i}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# ADD(2)
+00110 ddd iiiiiiii
+  Parsed "O R, #I" ADD {{d}} {|{i}|}
+  Operand [`{{d}}`] + {i}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# ADD(3)
+0001100 mmm nnn ddd
+  Parsed "O R, R, R" ADD {{d}} {{n}} {{m}}
+  Operand [`{{n}}`] + [`{{m}}`]
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# ADD(4)
+01000100 h mmmm ddd
+  hd {|{h}*8 + {d}|}
+  Parsed "O R, R" ADD {{hd}} {{m}}
+  Operand [`{{hd}}`] + [`{{m}}`]
+  Change 32 `{{hd}}` {Operand}
+  Stop
+
+# ADD(5)
+10100 ddd iiiiiiii
+  ri ({i}<<2)
+  Parsed "O R, R, #I" ADD {{d}} PC {|ri|}
+  Change 32 `{{d}}` ([`PC`] & 0xFFFFFFFC) + {ri}
+  Stop
+
+# ADD(6)
+10101 ddd iiiiiiii
+  ri ({i}<<2)
+  Parsed "O R, R, #I" ADD {{d}} SP {|{ri}|}
+  Change 32 `{{d}}` [`SP`] + {ri}
+  Stop
+
+# ADD(7)
+101100000 iiiiiii
+  ri ({i}<<2)
+  Parsed "O R, #I" SP {|ri|}
+  Change 32 `SP` [`SP`] + {ri}
+  Stop
+
+# AND
+010000 0000 mmm ddd
+  Parsed "O R, R" AND {{d}} {{m}}
+  Operand [`{{d}}`] & [`{{m}}`]
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# ASR(1)
+00010 iiiii mmm ddd
+  Parsed "O R, R, #I" ASR {{d}} {{m}} {i}
+  Operand [`{{m}}`] >>> {i}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# ASR(2)
+010000 0100 sss ddd
+  Parsed "O R, R" ASR {{d}} {{s}}
+  Operand [`{{d}}`] >>> ([`{{s}}`] & 0xFF)
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# B(1)
+# need condition support, therefore array support
+1101 cccc iiiiiiii
+  ri (i<<1) | ((i>>7)?(0xFFFFFE00))
+  Parsed "OF P" B {c} {|ri|}
+  Change 32 `PC` [`PC`] + {ri}
+  Stop
+
+# B(2)
+11100 iiiiiiiiiii
+  ri (i<<1) | ((i>>11)?(0xFFFFF000))
+  Parsed "O P" B {|ri|}
+  Change 32 `PC` [`PC`] + {ri}
+  Stop
+
+# BIC
+010000 1110 mmm ddd
+  Parsed "O R, R" BIC {{d}} {{m}}
+  Operand [`{{d}}`] & (~[`{{m}}`])
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# BKPT
+10111110 iiiiiiii
+  Parsed "O I" BKPT {i}
+  Change 32 `PC` 0xC
+  Stop
+
+# BL, BLX(1) -- 01
+111 01 iiiiiiiiiii
+  ri {i} << 1
+  Parsed "O I + R" BL {ri} LR
+  Change 32 `LR` ([`PC`]+2) | 1
+  Change 32 `PC` ([`LR`] + {ri}) & 0xFFFFFFFC
+  Change 32 `CPSR` [`CPSR`] & 0xFFFFFFDF
+  Stop
+
+# BL, BLX(1) -- 11
+111 11 iiiiiiiiiii
+  ri {i} << 1
+  Parsed "O I + R" BL {ri} LR
+  Change 32 `LR` ([`PC`]+2) | 1
+  Change 32 `PC` ([`LR`] + {ri})
+  Stop
+
+# BL, BLX(1) -- 10
+111 10 iiiiiiiiiii
+  ri ({i} << 12) | ((i>>11)?(0xFF800000))
+  Parsed "O I + R" BL {ri} LR
+  Change 32 `LR` ([`PC`]+2) | 1
+  Change 32 `PC` ([`LR`] + {ri})
+  Stop
+
+# BLX(2)
+010001111 **** ***
+  Change 32 `LR` ([`PC`]+2) | 1
+
+# BLX(2) and BX
+01000111* mmmm ***
+  Parsed "O R" BLX {{m}}
+  Change 32 `PC` [`m`] & 0xFFFFFFFE
+  Change 32 `CPSR` ([`CPSR`] & 0xFFFFFFDF) | (([`{{m}}`]&0x1) << 5)
+  Stop
+
+# CMN
+010000 1011 mmm nnn
+  Parsed "O R, R" CMN {{n}} {{m}}
+  Operand [`{{n}}`] + [`{{m}}`]
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# CMP(1)
+00101 nnn iiiiiiii
+  Parsed "O R, #I" CMP {{n}} {|{i}|}
+  Operand [`{{n}}`] + {i}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# CMP(2)
+010000 1010 mmm nnn
+  Parsed "O R, R" CMP {{n}} {{m}}
+  Operand [`{{n}}`] - [`{{m}}`]
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# CMP(3)
+01000101 h mmmm ddd
+  hd {|{h}*8 + {d}|}
+  Parsed "O R, R" CMP {{hd}} {{m}}
+  Operand [`{{hd}}`] - [`{{m}}`]
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# CPSIE
+1011 0 1 1 0 0 1 1 0 0 iii
+  Parsed "OF I" CPS IE {i}
+  Operand `CPSR` [`CPSR`] & (~0xE0)
+
+# CPSID
+1011 0 1 1 0 0 1 1 1 0 iii
+  Parsed "OF I" CPS ID {i}
+  Operand `CPSR` [`CPSR`] | 0xE0
+
+# CPY
+01000100 h mmmm ddd
+  hd {|{h}*8 + {d}|}
+  Parsed "O R, R" CPY {{hd}} {{m}}
+  Change 32 `{{hd}}` [`{{m}}`]
+  Stop
+
+# EOR
+010000 0100 mmm ddd
+  Parsed "O R, R" XOR {{m}} {{s}}
+  Operand [`{{d}}`] ^ [`{{m}}`]
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# LDMIA
+# LDMIA isn't finished
+11001 nnn ********
+  Parsed "O R!, " LDMIA {n}
+  Stop
+
+# LDR(1)
+01101 iiiii nnn ddd
+  ri {i} << 2
+  Parsed "O R, [R, #I]" LDR {{d}} {{n}} {|ri|}
+  Change 32 `{{d}}` [[`{{n}}`] + {ri}]
+  Stop
+
+# LDR(2)
+0101100 mmm nnn ddd
+  Parsed "O R, [R, R]" LDR {{d}} {{n}} {{m}}
+  Change 32 `{{d}}` [[`{{n}}`] + [`{{m}}`]]
+  Stop
+
+# LDR(3) -- PC relative
+01001 ddd iiiiiiii
+  Source [([`PC`] & 0xFFFFFFFC) + ({i} << 2)]
+  Parsed "O R, =I" LDR {{d}} {|Source|}
+  Change 32 `{{d}}` {Source}
+  Stop
+
+# LDR(4) -- from stack
+01001 ddd iiiiiiii
+  ri ({i} << 2)
+  Parsed "O R, [R, #I]" LDR {{d}} SP {|ri|}
+  Change 32 `{{d}}` [[`SP`] + {ri}]
+  Stop
+
+# LDRB(1)
+01111 iiiii nnn ddd
+  Parsed "O R, [R, #I]" LDRB {{d}} {{n}} {|{i}|}
+  Change 8 `{{d}}` [[`{{n}}`] + {i}]
+  Stop
+
+# LDRB(2)
+0101110 mmm nnn ddd
+  Parsed "O R, [R, R]" LDRB {{d}} {{n}} {{m}}
+  Change 8 `{{d}}` [[`{{n}}`] + [`{{m}}`]]
+  Stop
+
+# LDRH(1)
+10001 iiiii nnn ddd
+  ri ({i} << 1)
+  Parsed "O R, [R, #I]" LDRH {{d}} {{n}} {|ri|}
+  Change 16 `{{d}}` [[`{{n}}`] + {ri}]
+  Stop
+
+# LDRH(2)
+0101101 mmm nnn ddd
+  Parsed "O R, [R, R]" LDRH {{d}} {{n}} {{m}}
+  Change 16 `{{d}}` [[`{{n}}`] + [`{{m}}`]]
+  Stop
+
+# LDRSB
+0101011 mmm nnn ddd
+  Parsed "O R, [R, R]" LDRSH {{d}} {{n}} {{m}}
+  Operand ([[`{{n}}`] + [`{{m}}`]]) & 0xFF
+  Change 32 `{{d}}` {Operand} | ((({Operand})>>7)?{0xFFFFFF00))
+  Stop
+
+# LDRSH
+0101011 mmm nnn ddd
+  Parsed "O R, [R, R]" LDRSH {{d}} {{n}} {{m}}
+  Operand ([[`{{n}}`] + [`{{m}}`]]) & 0xFFFF
+  Change 32 `{{d}}` {Operand} | ((({Operand})>>15)?{0xFFFF0000))
+  Stop
+
+# LSL(1)
+00000 iiiii mmm ddd
+  Parsed "O R, R, #I" LSL {{d}} {{m}} {i}
+  Operand [`{{m}}`] << {i}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# LSL(2)
+010000 0010 sss ddd
+  Parsed "O R, R" LSL {{d}} {{s}}
+  Operand [`{{d}}`] << ([`{{s}}`] & 0xFF)
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# LSR(1)
+00001 iiiii mmm ddd
+  Parsed "O R, R, #I" LSR {{d}} {{m}} {i}
+  Operand [`{{m}}`] >> {i}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# LSR(2)
+010000 0011 sss ddd
+  Parsed "O R, R" LSR {{d}} {{s}}
+  Operand [`{{d}}`] >> ([`{{s}}`] & 0xFF)
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# MOV(1)
+00100 ddd iiiiiiii
+  Parsed "O R, #I" MOV {{d}} {|{i}|}
+  Operand {i}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# MOV(2)
+0001110 000 nnn ddd
+  Parsed "O R, R" MOV {{d}} {{n}}
+  Operand [`{{n}}`]
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# MOV(3)
+01000110 h mmmm ddd
+  hd {|{h}*8 + {d}|}
+  Parsed "O R, R" MOV {{hd}} {{m}}
+  Operand [`{{m}}`]
+  Change 32 `{{hd}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# MUL
+010000 1101 mmm ddd
+  Parsed "O R, R" MUL {{d}} {{m}}
+  Operand [`{{d}}`] * [`{{m}}`]
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# MVN
+010000 1101 mmm ddd
+  Parsed "O R, R" MVN {{d}} {{m}}
+  Operand (~[`{{m}}`])
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# NEG
+010000 1001 mmm ddd
+  Parsed "O R, R" MVN {{d}} {{m}}
+  Operand (0 - [`{{m}}`])
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# ORR
+010000 1100 mmm ddd
+  Parsed "O R, R" ORR {{d}} {{m}}
+  Operand [`{{d}}`] | [`{{m}}`]
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# POP
+# POP isn't finished
+1011110 * ********
+  Parsed "O " POP
+  Stop
+
+# PUSH
+# PUSH isn't finished
+1011010 * ********
+  Parsed "O " PUSH
+  Stop
+
+# REV
+1011 1010 0 0 nnn ddd
+  Parsed "O R, R" REV {{d}} {{n}}
+  r [`{{n}}`]
+  Change 32 `{{d}}` (({r} >> 24) & 0xFF) | (({r} >> 8) & 0xFF00) | (({r} << 8) & 0xFF0000) | (({r} << 24) & 0xFF000000)
+  Stop
+
+# REV16
+1011 1010 0 1 nnn ddd
+  Parsed "O R, R" REV16 {{d}} {{n}}
+  r [`{{n}}`]
+  Change 32 `{{d}}` (({r} >> 8) & 0xFF) | (({r} << 8) & 0xFF00) | (({r} >> 8) & 0xFF0000) | (({r} << 8) & 0xFF000000)
+  Stop
+
+# REVSH
+1011 1010 1 1 nnn ddd
+  Parsed "O R, R" REV16 {{d}} {{n}}
+  r [`{{n}}`]
+  Change 32 `{{d}}` ((({r} >> 8) & 0xFF) | (({r} << 8) & 0xFF00))) | (({r}>>7)?(0xFFFF0000))
+
+# ROR
+010000 0111 sss ddd
+  Parsed "O R, R" ROR {{d}} {{s}}
+  Operand [`{{d}}`] >/> ([`{{s}}`] & 0xFF)
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# SBC
+010000 0101 mmm ddd
+  Parsed "O R, R" SBC {{d}} {{m}}
+  Operand [`{{d}}`] - [`{{m}}`] - {C}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# SETEND
+1011 01100101 e ***
+  Parsed "O I" SETEND {e}
+  Change 32 `CPSR` ([`CPSR`] & 0xFFFFFEFF) | ({e} << 9)
+  Stop
+
+# STMIA
+# STMIA isn't finished
+11000 nnn ********
+  Parsed "O R!, " STMIA {n}
+  Stop
+
+# STR(1)
+01100 iiiii nnn ddd
+  ri {i} << 2
+  Parsed "O R, [R, #I]" STR {{d}} {{n}} {|ri|}
+  Change 32 [`{{n}}`]+{ri} [`{{d}}`]
+  Stop
+
+# STR(2)
+0101000 mmm nnn ddd
+  Parsed "O R, [R, R]" STR {{d}} {{n}} {{m}}
+  Change 32 [`{{n}}`]+[`{{m}}`] [`{{d}}`]
+  Stop
+
+# STR(3) -- to stack
+10010 ddd iiiiiiii
+  ri ({i} << 2)
+  Parsed "O R, [R, #I]" STR {{d}} SP {|ri|}
+  Change 32 [`SP`]+{ri} [`{{d}}`]
+  Stop
+
+# STRB(1)
+01110 iiiii nnn ddd
+  Parsed "O R, [R, #I]" STRB {{d}} {{n}} {|{i}|}
+  Change 8 [`{{n}}`] + {i} [`{{d}}`]
+  Stop
+
+# STRB(2)
+0101010 mmm nnn ddd
+  Parsed "O R, [R, R]" STRB {{d}} {{n}} {{m}}
+  Change 8 [`{{n}}`]+[`{{m}}`] [`{{d}}`]
+  Stop
+
+# STRH(1)
+10000 iiiii nnn ddd
+  ri ({i} << 1)
+  Parsed "O R, [R, #I]" STRH {{d}} {{n}} {|ri|}
+  Change 16 [`{{n}}`]+{ri} [`{{d}}`]
+  Stop
+
+# STRH(2)
+0101001 mmm nnn ddd
+  Parsed "O R, [R, R]" STRH {{d}} {{n}} {{m}}
+  Change 16 [`{{n}}`]+[`{{m}}`] [`{{d}}`]
+  Stop
+
+# SUB(1)
+0001111 iii nnn ddd
+  Parsed "O R, R, #I" SUB {{d}} {{n}} {|{i}|}
+  Operand [`{{n}}`] - {i}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# SUB(2)
+00111 ddd iiiiiiii
+  Parsed "O R, #I" SUB {{d}} {|{i}|}
+  Operand [`{{d}}`] - {i}
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# SUB(3)
+0001101 mmm nnn ddd
+  Parsed "O R, R, R" SUB {{d}} {{n}} {{m}}
+  Operand [`{{n}}`] - [`{{m}}`]
+  Change 32 `{{d}}` {Operand}
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# SUB(4)
+101100001 iiiiiii
+  ri ({i}<<2)
+  Parsed "O R, #I" SUB SP {|{ri}|}
+  Change 32 `SP` [`SP`] - {ri}
+  Stop
+
+# SWI
+11011111 iiiiiiii
+  Parsed "O I" SWI {i}
+  Change 32 `PC` 0x8
+  Stop
+
+# SXTB
+1011 0010 01 mmm ddd
+  Parsed "O R, R" SXTB {{d}} {{m}}
+  Change 32 `{{d}}` ([`{{m}}`]&0xFF) | (([`{{m}}`]>>7)?0xFFFFFF00)
+
+# SXTH
+1011 0010 00 mmm ddd
+  Parsed "O R, R" SXTH {{d}} {{m}}
+  Change 32 `{{d}}` ([`{{m}}`]&0xFFFF) | (([`{{m}}`]>>15)?0xFFFF0000)
+
+# TST
+010000 1000 mmm nnn
+  Parsed "O R, R" TST {{n}} {{m}}
+  Operand [`{{n}}`] & [`{{m}}`]
+  Change 32 `CPSR` {UpdateFlags}
+  Stop
+
+# UXTB
+1011 0010 01 mmm ddd
+  Parsed "O R, R" UXTB {{d}} {{m}}
+  Change 32 `{{d}}` ([`{{m}}`]&0xFF)
+
+# UXTH
+1011 0010 00 mmm ddd
+  Parsed "O R, R" UXTH {{d}} {{m}}
+  Change 32 `{{d}}` ([`{{m}}`]&0xFFFF)
