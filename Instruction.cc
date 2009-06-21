@@ -12,7 +12,9 @@ using namespace std;
 void Instruction::SerializeToXML(ostringstream& out) {
   out << std::hex << "<Instruction>";
   parsed_->SerializeToXML(out);
+  //LOG(DEBUG) << "    wrote parsed";
   change_->SerializeToXML(out);
+  //LOG(DEBUG) << "    wrote change";
   out << "<metadata>";
   for(vector<Address*>::iterator it = control_inputs_.begin(); it != control_inputs_.end(); ++it) {
     out << "<input>0x" << (*it)->get_location() << "</input>";

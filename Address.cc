@@ -24,20 +24,24 @@ void Address::Clear32() {
 void Address::SerializeToXML(ostringstream& out) {
   out << "<Address>" << std::hex;
   out << "<name>" << name_ << "</name>";
+  out << "<size>" << size_ << "</size>";
   if(location_ != 0xFFFFFFFF) {
     out << "<location>" << immed(location_) << "</location>";
   }
+  //LOG(DEBUG) << "  wrote location";
   out << "<values>";
   for(map<int, uint8_t>::iterator it = datamap_.begin(); it != datamap_.end(); ++it) {
     if(it->first != 0) {
       uint32_t data;
-      get32(it->first, &data);
+      get(it->first, &data);
       out << std::dec << "<C_" << it->first << ">" << std::hex << data << "</C_" << std::dec << it->first << ">";
     }
   }
+  //LOG(DEBUG) << "  wrote values";
   out << "</values>";
   if(instruction_ != NULL)
     instruction_->SerializeToXML(out);
+  //LOG(DEBUG) << "  wrote instruction";
   out << "</Address>";
 }
 

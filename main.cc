@@ -67,12 +67,14 @@ int main(int argc, char* argv[]) {
   //load_file(&f.memory_, &f.changelist_factory_, me, "bootrom", 0x400000);
   load_file(&f.memory_, &f.changelist_factory_, me, "ibec.dfu", 0x18000000);
 
-  Address* PC = f.memory_.ResolveToAddress(0,"`PC`");
-  PC->set32(1, 0x1800F99C);
+  f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x1800F99C);
 
   //f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
+  f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 4"));
 
   f.memory_.AllocateSegment(0, 0x40000);
+
+  f.memory_.ResolveToAddress(0,"`SP`")->set32(1, 0x10000);
 
   f.memory_.AllocateSegment(0xf4300000, 0x100);
   f.memory_.AllocateSegment(0xf4400000, 0x100);

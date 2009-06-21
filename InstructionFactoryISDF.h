@@ -25,6 +25,8 @@ public:
   InstructionFactoryISDF(string filename, Memory* m);
   Address* Process(Address* start);
 
+  void StateToXML(std::ostringstream& out);
+
   // Called by InstructionComprehension.Execute
   // Find {...} shit and replace it
   string EvalulateStringInScope(const map<string, string>& global_scope, const map<char, uint32_t>& local_scope, const string& evalme);
@@ -59,7 +61,7 @@ public:
   // Given an opcode, check if this is a match
   // Execute this instruction comprehension given the global scope which it can modify
   // Returns true if stop flag was hit
-  bool Execute(uint32_t data, map<string, string>* global_scope, StatelessChangelist* change, ParsedInstruction* parsed);
+  bool Execute(Address* opcode, map<string, string>* global_scope, StatelessChangelist* change, ParsedInstruction* parsed);
 private:
   // The Instruction data and the match mask
   // Size is accounted for here, mask always blank on top for smaller instructions

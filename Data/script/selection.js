@@ -8,6 +8,17 @@ var selected = [];
 
 window.addEventListener("mousedown", function(e) {
 // deselect all
+  var good = false;
+  var node = e.target.parentNode;
+  while(node != null) {
+    if(node.id == "flatfile") {
+      good = true;
+      break;
+    }
+    node = node.parentNode;
+  }
+
+  if(good == false) return false;
   if(e.ctrlKey == false) {
     var i;
     for(i in selected) {

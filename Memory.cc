@@ -223,7 +223,7 @@ uint32_t Memory::ResolveToNumber(int changelist_number, const string& stateless)
         case OPER_XOR: retval^=lastval; break;
         case OPER_NOT: retval=~lastval; break;
 
-        case OPER_IF: if(!lastval) retval = 0;
+        case OPER_IF: if(retval) { retval = lastval; } break;
 
         // 1 is equal
         // 0 if not equal

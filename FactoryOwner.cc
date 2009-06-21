@@ -64,6 +64,10 @@ bool FactoryOwner::HandlePostRequest(const std::vector<string>& argv, std::strin
 bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::string* out) {
   if(argv[0] == "Address" && argv.size() >= 2) {
     Address* a = memory_.ResolveToAddress(0, argv[1]);
+    /*if(a != 0 && a->get_instruction() == NULL) {  // Auto-Disassembly
+      instruction_factory_->Process(a);
+      LOG(INFO) << "Disassembled";
+    }*/
     if (a != 0 && argv.size() >= 3) {
       if(argv[2] == "Name") {
         (*out) += a->get_name();
@@ -101,7 +105,9 @@ bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::strin
     } else if(a != 0) {
       ostringstream ss;
       ss << kXMLHeader;
+      LOG(DEBUG) << "making xml";
       a->SerializeToXML(ss);
+      LOG(DEBUG) << "done making xml";
       (*out) += ss.str();
     } else {
       LOG(INFO) << "Address not found";
@@ -184,23 +190,34 @@ bool FactoryOwner::HandleRenameRequest(const std::vector<string>& argv, std::str
 
 bool FactoryOwner::HandleStepRequest(const std::vector<string>& argv, std::string* out) {
   if(argv[0] == "Address" && argv.size() >= 2) {
+    Address* stop;
     Address* a = memory_.ResolveToAddress(0, argv[1]);
-    if (a != 0) {
-      if(a->get_instruction() == NULL) {
-        instruction_factory_->Process(a);
-        LOG(INFO) << "Disassembled";
+    if(argv.size() == 3) { // Run until
+      stop = memory_.ResolveToAddress(0, argv[2]);
+      while (a != stop) {
+        if(a->get_instruction() == NULL) instruction_factory_->Process(a);
+        Changelist* c = changelist_factory_.CreateFromStatelessChangelist(a, *a->get_instruction()->change_, &memory_);
+        memory_.Commit(c);
+        a = memory_.ResolveToAddress(0, argv[1]);
       }
-      StatelessChangelist* slcl = a->get_instruction()->change_;
-      DebugPrint(slcl);
-      LOG(DEBUG) << "got address, creating changelist";
-      Changelist* c = changelist_factory_.CreateFromStatelessChangelist(a, *slcl, &memory_);
-      LOG(DEBUG) << "changelist created";
-      memory_.Commit(c);
+    } else {
+      if (a != 0) {
+        if(a->get_instruction() == NULL) {
+          instruction_factory_->Process(a);
+          LOG(INFO) << "Disassembled";
+        }
+        StatelessChangelist* slcl = a->get_instruction()->change_;
+        DebugPrint(slcl);
+        LOG(DEBUG) << "got address, creating changelist";
+        Changelist* c = changelist_factory_.CreateFromStatelessChangelist(a, *slcl, &memory_);
+        LOG(DEBUG) << "changelist created";
+        memory_.Commit(c);
 
-      ostringstream ss;
-      ss << kXMLHeader;
-      c->SerializeToXML(ss);
-      (*out) = ss.str();
+        ostringstream ss;
+        ss << kXMLHeader;
+        c->SerializeToXML(ss);
+        (*out) = ss.str();
+      }
     }
   }
 }

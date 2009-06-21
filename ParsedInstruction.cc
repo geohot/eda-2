@@ -6,6 +6,8 @@
 #include "data.h"
 #include "util.h"
 
+#include "data_memory.h"
+
 #include <map>
 #include <string>
 
@@ -81,7 +83,14 @@ void ParsedInstruction::SerializeToXML(ostringstream& out) {
       if(args_[vpos].length() != 0) {
         out << "<atom>";
         out << "<type>" << it->second << "</type>";
-        out << "<data>" << args_[vpos] << "</data>";
+        if(format_[i] == 'P') {
+          Address* target = parent_->memory_->ResolveToAddress(0, immed(parent_->get_location())+"+"+args_[vpos]);
+          if(target != NULL)
+            out << "<data>" << target->get_name() << "</data>";
+          else
+            out << "<data>" << parent_->memory_->ResolveToNumber(0, immed(parent_->get_location())+"+"+args_[vpos]) << "</data>";
+        } else
+          out << "<data>" << args_[vpos] << "</data>";
         out << "</atom>";
       }
       vpos++;

@@ -34,8 +34,11 @@ InstructionFactoryISDF::InstructionFactoryISDF(string filename, Memory* m) {
       if(first_word == "Registers") {
         vector<string> registers;
         StringSplit(' ', line, &registers);
-        for (int i = 1; i < registers.size(); i++) {
-          registers_.push_back(make_pair(registers[i], m->AllocateSegment(registers[i], 4)));
+        int size = stoi(registers[1])/8;
+        for (int i = 2; i < registers.size(); i++) {
+          Address* this_address = m->AllocateSegment(registers[i], size);
+          this_address->set_size(size);
+          registers_.push_back(make_pair(registers[i], this_address));
         }
       } else if(first_word == "DefaultChange") {
         // 0 is Change, 1 is bits, 2 is target, 3... is change
@@ -62,19 +65,39 @@ InstructionFactoryISDF::InstructionFactoryISDF(string filename, Memory* m) {
   }
   if(current != NULL) instructioncomprehensions_.push_back(current);
   LOG(INFO) << "read " << current_line_ << " lines of comprehension";
+
+  map<char, uint32_t> psuedo_local_scope;
+  program_counter_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{ProgramCounter}"));
+  link_register_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{LinkRegister}"));
+  stack_pointer_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{StackPointer}"));
+  program_counter_offset_ = memory_->ResolveToNumber(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{ProgramCounterOffset}"));
+}
+
+void InstructionFactoryISDF::StateToXML(std::ostringstream& out) {
+  out << std::hex;
+  out << "<Core>";
+  out << "<ProgramCounter>" << GetProgramCounter() << "</ProgramCounter>";
+  out << "<StackPointer>" << GetStackPointer() << "</StackPointer>";
+  out << "<registers>";
+
+  for(vector<pair<string, Address*> >::iterator it = registers_.begin(); it!=registers_.end(); ++it) {
+    uint32_t data;
+    it->second->get(0, &data);
+    out << "<" << it->first << ">" << data << "</" << it->first << ">";
+  }
+
+  out << "</registers>";
+  out << "</Core>";
 }
 
 Address* InstructionFactoryISDF::Process(Address* start) {
-  uint32_t opcode;
-  Address* ret = start->get32(0, &opcode);  // hmm, bad size
-
   map<string, string> global_scope_copy = global_scope_;
 
   StatelessChangelist* change = new StatelessChangelist;
-  ParsedInstruction* parsed = new ParsedInstruction;
+  ParsedInstruction* parsed = new ParsedInstruction(start);
 
   for(vector<InstructionComprehension*>::iterator it = instructioncomprehensions_.begin(); it != instructioncomprehensions_.end(); ++it) {
-    if((*it)->Execute(opcode, &global_scope_copy, change, parsed) == true) break;
+    if((*it)->Execute(start, &global_scope_copy, change, parsed) == true) break;
   }
 
   for(map<string, pair<int, string> >::iterator it = default_changes_.begin(); it != default_changes_.end(); ++it) {
@@ -100,7 +123,8 @@ Address* InstructionFactoryISDF::Process(Address* start) {
   LOG(DEBUG) << "Parsed -- " << parsed->GetConsoleString();
 
   start->set_instruction(new Instruction(parsed, change, start, 4));
-  return ret;
+  uint32_t data;
+  return start->get(0, &data);
 }
 
 // Okay, I know I'm not supposed to work in the constructor...
@@ -190,9 +214,12 @@ void InstructionComprehension::AddLine(const string& linein) {
   }
 }
 
-bool InstructionComprehension::Execute(uint32_t data, map<string, string>* global_scope, StatelessChangelist* change, ParsedInstruction* parsed) {
+bool InstructionComprehension::Execute(Address* opcode, map<string, string>* global_scope, StatelessChangelist* change, ParsedInstruction* parsed) {
+  opcode->set_size(bitsize_/8);
+  uint32_t data;
+  opcode->get(0, &data);
   if( (data & mask_) != data_) {
-    //LOG(DEBUG) << std::hex << "No match on data " << data << " with data " << data_ << " and mask " << mask_;
+    //LOG(DEBUG) << std::hex << "No match on data " << data << " with data " << data_ << " and mask " << mask_ << " and bitsize " << bitsize_;
     return false;
   }
 
@@ -206,7 +233,13 @@ bool InstructionComprehension::Execute(uint32_t data, map<string, string>* globa
   }
 // Evaluate global scope
   for(map<string, string>::iterator it = global_scope_additions_.begin(); it != global_scope_additions_.end(); ++it) {
-    (*global_scope)[it->first] = parent_->EvalulateStringInScope(*global_scope, local_scope, it->second);
+    string varname = it->first;
+    if(varname[varname.length()-1] == '+') {
+      (*global_scope)[varname.substr(0,varname.length()-1)] += parent_->EvalulateStringInScope(*global_scope, local_scope, it->second);
+    } else {
+      (*global_scope)[varname] += parent_->EvalulateStringInScope(*global_scope, local_scope, it->second);
+    }
+
     LOG(DEBUG) << "added " << it->first << " to the global scope: " << (*global_scope)[it->first];
   }
 // Add Parsed
@@ -251,7 +284,7 @@ string InstructionFactoryISDF::EvalulateStringInScope(const map<string, string>&
   // Find {...} shit and replace it
   // {{...}} is registers
   // {|...|} is eval to hex number
-  LOG(DEBUG) << "eval start: " << evalme;
+  //LOG(DEBUG) << "eval start: " << evalme;
   string out = "";
   int p = 0;
   int last = 0;
@@ -274,7 +307,7 @@ string InstructionFactoryISDF::EvalulateStringInScope(const map<string, string>&
       }
     } else if(parsethis[1] == '|') {  // Hex
       string dataeval = EvalulateStringInScope(global_scope, local_scope, parsethis.substr(2, parsethis.length()-4) );
-      LOG(DEBUG) << "  resolving: " << dataeval;
+      //LOG(DEBUG) << "  resolving: " << dataeval;
       replace = immed(memory_->ResolveToNumber(0, dataeval));
     } else {
       string variable = parsethis.substr(1, parsethis.length()-2);
@@ -291,7 +324,7 @@ string InstructionFactoryISDF::EvalulateStringInScope(const map<string, string>&
         }
       }
     }
-    LOG(DEBUG) << "  parsing \"" << parsethis << "\" to \"" << replace << "\"";
+    //LOG(DEBUG) << "  parsing \"" << parsethis << "\" to \"" << replace << "\"";
     out += evalme.substr(last, p-last) + replace;
 
     p = close+1;
@@ -299,6 +332,6 @@ string InstructionFactoryISDF::EvalulateStringInScope(const map<string, string>&
   }
 
   out += evalme.substr(last);
-  LOG(DEBUG) << "eval done: \"" << evalme << "\" to \"" << out << "\"";
+  //LOG(DEBUG) << "eval done: \"" << evalme << "\" to \"" << out << "\"";
   return out;
 }

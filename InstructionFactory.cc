@@ -45,6 +45,9 @@ void InstructionFactory::FastAnalyseRecurse(Memory* m, Address* location, Addres
     Address* target = m->ResolveToAddress(0, change->first.first);
     if(target == link_register_) {
       lr_condition = change->first.second;
+      if(lr_condition == "1") {   // if the linked branch always happens
+        pc_changes.push_back(change); //add the link register change to the PC changes
+      }
     } else if(target == program_counter_) {
       pc_changes.push_back(change);
     }
@@ -54,38 +57,41 @@ void InstructionFactory::FastAnalyseRecurse(Memory* m, Address* location, Addres
   for(int i = 0; i < pc_changes.size(); i++) {
     // Check to see if this change targets the program counter
     //LOG(INFO) << std::hex << "branch of " << location->get_location();
-    if(m->ResolveToAddress(0, pc_changes[i]->first.first) == temp_program_counter) {
-      //LOG(INFO) << "is program counter";
-      // If so, evaluate it in this frame
-      uint32_t next_pc = m->ResolveToNumber(static_changelist_number, pc_changes[i]->second.second);
-      if(next_pc == 0xFFFFFFF) continue;    // This is a hack
-      temp_program_counter->set32(++(*changelist_number), next_pc);
-      ostringstream o; o << "0x" << std::hex << TranslateToProgramCounter(next_pc);
-      //LOG(INFO) << "targetting " << o.str();
-      Address* next_address = m->ResolveToAddress(0, o.str());
-      if(next_address != NULL) {
-        if(pc_changes[i]->first.second == lr_condition) {    // This is a linked branch
-          this_instruction->control_indirect_outputs_.push_back(next_address);
-          if(next_address->get_instruction() == NULL) {
-            Process(next_address);
-            next_address->get_instruction()->control_indirect_inputs_.push_back(location);
-            FastAnalyseRecurse(m, next_address, temp_program_counter, changelist_number);
-          } else {
-            next_address->get_instruction()->control_indirect_inputs_.push_back(location);
-          }
-        } else {    // This is direct
-          this_instruction->control_outputs_.push_back(next_address);
-          if(next_address->get_instruction() == NULL) {
-            Process(next_address);
-            next_address->get_instruction()->control_inputs_.push_back(location);
-            FastAnalyseRecurse(m, next_address, temp_program_counter, changelist_number);
-          } else {
-            next_address->get_instruction()->control_inputs_.push_back(location);
-          }
+    //LOG(INFO) << "is program counter";
+    // If so, evaluate it in this frame
+    uint32_t next_pc = m->ResolveToNumber(static_changelist_number, pc_changes[i]->second.second);
+    if(next_pc == 0xFFFFFFF) continue;    // This is a hack
+    temp_program_counter->set32(++(*changelist_number), next_pc);
+    ostringstream o; o << "0x" << std::hex << TranslateToProgramCounter(next_pc);
+    //LOG(INFO) << "targetting " << o.str();
+    Address* next_address = m->ResolveToAddress(0, o.str());
+    if(next_address != NULL) {
+      if(m->ResolveToAddress(0, pc_changes[i]->first.first) == link_register_) {    // This is the lr return address
+        if(next_address->get_instruction() == NULL) {
+          Process(next_address);
+          FastAnalyseRecurse(m, next_address, temp_program_counter, changelist_number);
         }
-      } else {
-        LOG(INFO) << "invalid address: " << o.str();
+      } else if(pc_changes[i]->first.second == lr_condition) {    // This is a linked branch
+        this_instruction->control_indirect_outputs_.push_back(next_address);
+        if(next_address->get_instruction() == NULL) {
+          Process(next_address);
+          next_address->get_instruction()->control_indirect_inputs_.push_back(location);
+          FastAnalyseRecurse(m, next_address, temp_program_counter, changelist_number);
+        } else {
+          next_address->get_instruction()->control_indirect_inputs_.push_back(location);
+        }
+      } else {    // This is direct
+        this_instruction->control_outputs_.push_back(next_address);
+        if(next_address->get_instruction() == NULL) {
+          Process(next_address);
+          next_address->get_instruction()->control_inputs_.push_back(location);
+          FastAnalyseRecurse(m, next_address, temp_program_counter, changelist_number);
+        } else {
+          next_address->get_instruction()->control_inputs_.push_back(location);
+        }
       }
+    } else {
+      LOG(INFO) << "invalid address: " << o.str();
     }
   }
 }

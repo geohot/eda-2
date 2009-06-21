@@ -8,7 +8,10 @@ function send_request() {
     var xml = ret.html.substr(38);
     //document.getElementById("response").value = xml;
     //alert(ret.xml.documentElement);
-    document.getElementById("response").value = view_xml(ret.xml.documentElement, 0);
+    if(ret.xml == null)
+      document.getElementById("response").value = xml;
+    else
+      document.getElementById("response").value = view_xml(ret.xml.documentElement, 0);
 
   } else
     document.getElementById("response").value = ret.html;

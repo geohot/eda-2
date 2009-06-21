@@ -89,14 +89,32 @@ public:
     name_ = "";
     memory_ = memory;
     location_ = 0xFFFFFFFF;
+    size_ = 1;
   }
   // Address accessor functions
   // All return pointer to address after last one got
   // NULL if said address doesn't exist
+  Address* get(int changelist_number, uint32_t* data) {
+    (*data) = 0;
+    switch(size_) {
+    case 1: return get8(changelist_number, (uint8_t*)data);
+    case 2: return get16(changelist_number, (uint16_t*)data);
+    case 4: return get32(changelist_number, data);
+    }
+    return NULL;
+  }
   Address* get8(int changelist_number, uint8_t* data);
   Address* get16(int changelist_number, uint16_t* data);
   Address* get32(int changelist_number, uint32_t* data);
   // Address mutator functions are only to be called from commit
+  Address* set(int changelist_number, uint32_t data) {
+    switch(size_) {
+    case 1: return set8(changelist_number, (uint8_t)(data&0xFF));
+    case 2: return set16(changelist_number, (uint16_t)(data&0xFFFF));
+    case 4: return set32(changelist_number, data);
+    }
+    return NULL;
+  }
   Address* set8(int changelist_number, uint8_t data);
   Address* set16(int changelist_number, uint16_t data);
   Address* set32(int changelist_number, uint32_t data);
@@ -124,9 +142,17 @@ public:
   Address* get_next();
   const string& get_name();
 
+  int get_size() { return size_; }
+  void set_size(int size) { size_ = size; }
+
   Memory* memory_;  // The memory that created me
 private:
   uint32_t location_;
+
+  // This is the DCB, DCW, DCD field
+  int size_;
+
+  //vector<string> flags;     //this is a possibility
 
   // Maps changelistNumbers to 8-bit datas
   map<int, uint8_t> datamap_;

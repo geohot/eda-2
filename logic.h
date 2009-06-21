@@ -31,13 +31,13 @@ public:
   virtual void StateToXML(std::ostringstream& out) { }
 
   // This is the instruction that is currently running
-  uint32_t GetProgramCounter() {
+  virtual uint32_t GetProgramCounter() {
     uint32_t ret;
     program_counter_->get32(0, &ret);
     return TranslateToProgramCounter(ret);
   }
 
-  uint32_t GetStackPointer() {
+  virtual uint32_t GetStackPointer() {
     uint32_t ret;
     stack_pointer_->get32(0, &ret);
     return ret;
@@ -45,11 +45,11 @@ public:
 
   // This is extended for different archs to get the real program counter
   virtual uint32_t TranslateToProgramCounter(uint32_t in) {
-    return in;
+    return in-program_counter_offset_;
   }
 
   virtual uint32_t TranslateFromProgramCounter(uint32_t in) {
-    return in;
+    return in+program_counter_offset_;
   }
 
   void FastAnalyse(Memory* m, Address* start);
@@ -58,6 +58,7 @@ public:
   Address* program_counter_;
   Address* link_register_;
   Address* stack_pointer_;
+  int program_counter_offset_;
   vector<pair<std::string, Address*> > registers_;
 private:
 

@@ -5,12 +5,13 @@
 # Number Two, let's do it syntax blind
 # In fact, theres so little syntax, yay!
 
-Registers R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 SP LR PC CPSR SPSR
-InstructionLength 16
+Registers 32 R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 SP LR PC CPSR SPSR
 
 # Special Strings
-ProgramCounter [`PC`]-4
-StackPointer [`SP`]
+ProgramCounter `PC`
+LinkRegister `LR`
+StackPointer `SP`
+ProgramCounterOffset 4
 
 Z (([`CPSR`] >> 30) & 1)
 C (([`CPSR`] >> 29) & 1)
@@ -66,7 +67,7 @@ DefaultChange 32 `PC` [`PC`]+2
 # ADD(5)
 10100 ddd iiiiiiii
   ri ({i}<<2)
-  Parsed "O R, R, #I" ADD {{d}} PC {|ri|}
+  Parsed "O R, R, #I" ADD {{d}} PC {|{ri}|}
   Change 32 `{{d}}` ([`PC`] & 0xFFFFFFFC) + {ri}
   Stop
 
@@ -80,7 +81,7 @@ DefaultChange 32 `PC` [`PC`]+2
 # ADD(7)
 101100000 iiiiiii
   ri ({i}<<2)
-  Parsed "O R, #I" SP {|ri|}
+  Parsed "O R, #I" SP {|{ri}|}
   Change 32 `SP` [`SP`] + {ri}
   Stop
 
@@ -109,17 +110,62 @@ DefaultChange 32 `PC` [`PC`]+2
   Stop
 
 # B(1)
-# need condition support, therefore array support
+1101 0000 ********
+  Condition {Z}
+  ConditionString EQ
+1101 0001 ********
+  Condition ~{Z}
+  ConditionString NE
+1101 0010 ********
+  Condition {C}
+  ConditionString HS
+1101 0011 ********
+  Condition ~{C}
+  ConditionString LO
+1101 0100 ********
+  Condition {N}
+  ConditionString MI
+1101 0101 ********
+  Condition ~{N}
+  ConditionString PL
+1101 0110 ********
+  Condition {V}
+  ConditionString VS
+1101 0111 ********
+  Condition ~{V}
+  ConditionString VC
+1101 1000 ********
+  Condition {C}&~{Z}
+  ConditionString HI
+1101 1001 ********
+  Condition {Z}|~{C}
+  ConditionString LS
+1101 1010 ********
+  Condition ~({N}^{V})
+  ConditionString GE
+1101 1011 ********
+  Condition {N}^{V}
+  ConditionString LT
+1101 1100 ********
+  Condition ~(Z)&~({N}^{V})
+  ConditionString GT
+1101 1101 ********
+  Condition {Z}&({N}^{V})
+  ConditionString LE
+1101 1110 ********
+  Condition 1
+1101 1111 ********
+  Condition 1
 1101 cccc iiiiiiii
-  ri (i<<1) | ((i>>7)?(0xFFFFFE00))
-  Parsed "OF P" B {c} {|ri|}
+  ri (({i}<<1) | (({i}>>7)?(0xFFFFFE00))) + 4
+  Parsed "OF P" B {ConditionString} {|{ri}|}
   Change 32 `PC` [`PC`] + {ri}
   Stop
 
 # B(2)
 11100 iiiiiiiiiii
-  ri (i<<1) | ((i>>11)?(0xFFFFF000))
-  Parsed "O P" B {|ri|}
+  ri (({i}<<1) | (({i}>>11)?(0xFFFFF000))) + 4
+  Parsed "O P" B {|{ri}|}
   Change 32 `PC` [`PC`] + {ri}
   Stop
 
@@ -139,27 +185,34 @@ DefaultChange 32 `PC` [`PC`]+2
 
 # BL, BLX(1) -- 01
 111 01 iiiiiiiiiii
-  ri {i} << 1
-  Parsed "O I + R" BL {ri} LR
+  ri ({i} << 1)
+  Parsed "O I + R" BL {|{ri}|} LR
   Change 32 `LR` ([`PC`]+2) | 1
   Change 32 `PC` ([`LR`] + {ri}) & 0xFFFFFFFC
   Change 32 `CPSR` [`CPSR`] & 0xFFFFFFDF
   Stop
 
+# BL, two opcodes
+111 11 jjjjjjjjjjj 111 10 iiiiiiiiiii
+  ri (({i} << 12) | (({i}>>11)?(0xFF800000))) + ({j} << 1) + 4
+  Parsed "O P" BL {|{ri}|}
+  Change 32 `LR` ([`PC`]+4)
+  Change 32 `PC` ([`PC`] + {ri})
+  Stop
+
 # BL, BLX(1) -- 11
 111 11 iiiiiiiiiii
-  ri {i} << 1
-  Parsed "O I + R" BL {ri} LR
+  ri ({i} << 1)
+  Parsed "O I + R" BL {|{ri}|} LR
   Change 32 `LR` ([`PC`]+2) | 1
-  Change 32 `PC` ([`LR`] + {ri})
+  Change 32 `PC` ([`LR`] + {ri}) + 4
   Stop
 
 # BL, BLX(1) -- 10
 111 10 iiiiiiiiiii
-  ri ({i} << 12) | ((i>>11)?(0xFF800000))
-  Parsed "O I + R" BL {ri} LR
-  Change 32 `LR` ([`PC`]+2) | 1
-  Change 32 `PC` ([`LR`] + {ri})
+  ri ({i} << 12) | (({i}>>11)?(0xFF800000))
+  Parsed "O R, R + #I" MOV LR PC {|{ri}|}
+  Change 32 `LR` [`PC`] + {ri}
   Stop
 
 # BLX(2)
@@ -169,7 +222,7 @@ DefaultChange 32 `PC` [`PC`]+2
 # BLX(2) and BX
 01000111* mmmm ***
   Parsed "O R" BLX {{m}}
-  Change 32 `PC` [`m`] & 0xFFFFFFFE
+  Change 32 `PC` ([`m`] & 0xFFFFFFFE) + 4
   Change 32 `CPSR` ([`CPSR`] & 0xFFFFFFDF) | (([`{{m}}`]&0x1) << 5)
   Stop
 
@@ -236,7 +289,7 @@ DefaultChange 32 `PC` [`PC`]+2
 # LDR(1)
 01101 iiiii nnn ddd
   ri {i} << 2
-  Parsed "O R, [R, #I]" LDR {{d}} {{n}} {|ri|}
+  Parsed "O R, [R, #I]" LDR {{d}} {{n}} {|{ri}|}
   Change 32 `{{d}}` [[`{{n}}`] + {ri}]
   Stop
 
@@ -256,7 +309,7 @@ DefaultChange 32 `PC` [`PC`]+2
 # LDR(4) -- from stack
 01001 ddd iiiiiiii
   ri ({i} << 2)
-  Parsed "O R, [R, #I]" LDR {{d}} SP {|ri|}
+  Parsed "O R, [R, #I]" LDR {{d}} SP {|{ri}|}
   Change 32 `{{d}}` [[`SP`] + {ri}]
   Stop
 
@@ -275,7 +328,7 @@ DefaultChange 32 `PC` [`PC`]+2
 # LDRH(1)
 10001 iiiii nnn ddd
   ri ({i} << 1)
-  Parsed "O R, [R, #I]" LDRH {{d}} {{n}} {|ri|}
+  Parsed "O R, [R, #I]" LDRH {{d}} {{n}} {|{ri}|}
   Change 16 `{{d}}` [[`{{n}}`] + {ri}]
   Stop
 
@@ -388,16 +441,112 @@ DefaultChange 32 `PC` [`PC`]+2
   Change 32 `CPSR` {UpdateFlags}
   Stop
 
-# POP
-# POP isn't finished
+# POP init
 1011110 * ********
+  Writeback [`SP`]
   Parsed "O " POP
+# POP R0
+1011110 * *******1
+  Parsed "%R " R0
+  Writeback+ +4
+  Change 32 `R0` [{Writeback}-4]
+# POP R1
+1011110 * ******1*
+  Parsed "%R " R1
+  Writeback+ +4
+  Change 32 `R1` [{Writeback}-4]
+# POP R2
+1011110 * *****1**
+  Parsed "%R " R2
+  Writeback+ +4
+  Change 32 `R2` [{Writeback}-4]
+# POP R3
+1011110 * ****1***
+  Parsed "%R " R3
+  Writeback+ +4
+  Change 32 `R3` [{Writeback}-4]
+# POP R4
+1011110 * ***1****
+  Parsed "%R " R4
+  Writeback+ +4
+  Change 32 `R4` [{Writeback}-4]
+# POP R5
+1011110 * **1*****
+  Parsed "%R " R5
+  Writeback+ +4
+  Change 32 `R5` [{Writeback}-4]
+# POP R6
+1011110 * *1******
+  Parsed "%R " R6
+  Writeback+ +4
+  Change 32 `R6` [{Writeback}-4]
+# POP R7
+1011110 * 1*******
+  Parsed "%R " R7
+  Writeback+ +4
+  Change 32 `R7` [{Writeback}-4]
+# POP PC
+1011110 1 ********
+  Parsed "%R " PC
+  Writeback+ +4
+  Change 32 `PC` [{Writeback}-4] & 0xFFFFFFFE
+# POP stop
+1011110 * ********
+  Change 32 `SP` {Writeback}
   Stop
 
-# PUSH
-# PUSH isn't finished
+# PUSH init
 1011010 * ********
+  Writeback [`SP`]
   Parsed "O " PUSH
+# PUSH LR
+1011010 1 ********
+  Parsed "%R " LR
+  Writeback+ -4
+  Change 32 {Writeback} [`LR`]
+# PUSH R7
+1011010 * 1*******
+  Parsed "%R " R7
+  Writeback+ -4
+  Change 32 {Writeback}-4 [`R7`]
+# PUSH R6
+1011010 * *1******
+  Parsed "%R " R6
+  Writeback+ -4
+  Change 32 {Writeback} [`R6`]
+# PUSH R5
+1011010 * **1*****
+  Parsed "%R " R5
+  Writeback+ -4
+  Change 32 {Writeback} [`R5`]
+# PUSH R4
+1011010 * ***1****
+  Parsed "%R " R4
+  Writeback+ -4
+  Change 32 {Writeback} [`R4`]
+# PUSH R3
+1011010 * ****1***
+  Parsed "%R " R3
+  Writeback+ -4
+  Change 32 {Writeback} [`R3`]
+# PUSH R2
+1011010 * *****1**
+  Parsed "%R " R2
+  Writeback+ -4
+  Change 32 {Writeback} [`R2`]
+# PUSH R1
+1011010 * ******1*
+  Parsed "%R " R1
+  Writeback+ -4
+  Change 32 {Writeback} [`R1`]
+# PUSH R0
+1011010 * *******1
+  Parsed "%R " R0
+  Writeback+ -4
+  Change 32 {Writeback} [`R0`]
+# PUSH stop
+1011010 * ********
+  Change 32 `SP` {Writeback}
   Stop
 
 # REV
@@ -450,8 +599,8 @@ DefaultChange 32 `PC` [`PC`]+2
 
 # STR(1)
 01100 iiiii nnn ddd
-  ri {i} << 2
-  Parsed "O R, [R, #I]" STR {{d}} {{n}} {|ri|}
+  ri ({i} << 2)
+  Parsed "O R, [R, #I]" STR {{d}} {{n}} {|{ri}|}
   Change 32 [`{{n}}`]+{ri} [`{{d}}`]
   Stop
 
@@ -464,7 +613,7 @@ DefaultChange 32 `PC` [`PC`]+2
 # STR(3) -- to stack
 10010 ddd iiiiiiii
   ri ({i} << 2)
-  Parsed "O R, [R, #I]" STR {{d}} SP {|ri|}
+  Parsed "O R, [R, #I]" STR {{d}} SP {|{ri}|}
   Change 32 [`SP`]+{ri} [`{{d}}`]
   Stop
 
@@ -483,7 +632,7 @@ DefaultChange 32 `PC` [`PC`]+2
 # STRH(1)
 10000 iiiii nnn ddd
   ri ({i} << 1)
-  Parsed "O R, [R, #I]" STRH {{d}} {{n}} {|ri|}
+  Parsed "O R, [R, #I]" STRH {{d}} {{n}} {|{ri}|}
   Change 16 [`{{n}}`]+{ri} [`{{d}}`]
   Stop
 
@@ -548,11 +697,11 @@ DefaultChange 32 `PC` [`PC`]+2
   Stop
 
 # UXTB
-1011 0010 01 mmm ddd
+1011 0010 11 mmm ddd
   Parsed "O R, R" UXTB {{d}} {{m}}
   Change 32 `{{d}}` ([`{{m}}`]&0xFF)
 
 # UXTH
-1011 0010 00 mmm ddd
+1011 0010 10 mmm ddd
   Parsed "O R, R" UXTH {{d}} {{m}}
   Change 32 `{{d}}` ([`{{m}}`]&0xFFFF)

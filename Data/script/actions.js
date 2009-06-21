@@ -44,13 +44,18 @@ function highlight(h) {
 }
 
 function send_step_request() {
-  var ret = xx("STEP", "/Address/[`PC`]-8", "");
+  if(selected.length == 1) {
+    var ret = xx("STEP", "/Address/[`PC`]-4/"+selected[0].value, "");
+  } else {
+    var ret = xx("STEP", "/Address/[`PC`]-4", "");
+  }
   //document.getElementById("response").value = view_xml(ret.xml.documentElement, 0);
   send_reg_request();
 }
 
 function LoadAddressFlat(address) {
   if(address_cache[address] == null) {
+    //xx("DISASSEMBLE", "/Address/"+immed(address), "").xml;
     var ret = xx("READ", "/Address/"+immed(address), "").xml;
     address_cache[address] = ret;
   } else {
@@ -88,12 +93,12 @@ function LoadAreaFlat(start) {
   var i;
   var output = document.getElementById("flatfile");
   output.innerHTML = "";
-  for(i=start; i < start+0x100; i+=4) {
+  for(i=start; i < start+0x100; i+=2) {
     output.appendChild(LoadAddressFlat(i));
   }
 }
 
-window.addEventListener("load", function(e) { LoadAreaFlat(0x400228); }, false);
+window.addEventListener("load", function(e) { LoadAreaFlat(0x1800F998); }, false);
 
 window.addEventListener("keypress", function(e) {
   if(e.keyCode == 112) {
@@ -134,9 +139,9 @@ window.addEventListener("mousewheel", function(e) {
     //alert(file.firstChild.nodeName);
     file.removeChild(file.firstChild);
     file.appendChild(LoadAddressFlat(address_view+0x100));
-    address_view += 4;
+    address_view += 2;
   } else {
-    address_view -= 4;
+    address_view -= 2;
     file.insertBefore(LoadAddressFlat(address_view), file.firstChild);
     file.removeChild(file.lastChild);
   }

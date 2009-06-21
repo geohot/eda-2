@@ -100,6 +100,9 @@ public:
   ParsedInstruction() {
     format_ = "";
   }
+  ParsedInstruction(Address* parent) : parent_(parent) {
+    format_ = "";
+  }
   ParsedInstruction(const string& format, const vector<string>& args) : format_(format), args_(args) {}
   void SerializeToXML(ostringstream& out);
   string GetConsoleString();
@@ -108,6 +111,7 @@ public:
 private:
 // It'd be sweet if this was a string with formatting
   static map<char, string> web_lookup_;
+  Address* parent_;
 };
 
 }
