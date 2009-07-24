@@ -105,6 +105,7 @@ template <class T> bool Servlet<T>::RunLoop() {
 
     shutdown(client_socket_, SHUT_RDWR);
   }
+  return true;
 }
 
 template <class T> bool Servlet<T>::AcceptClient() {

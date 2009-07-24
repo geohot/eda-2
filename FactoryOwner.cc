@@ -30,12 +30,15 @@
 
 #include "File.h"
 
+#include "JSON.h"
+
 using namespace eda;
 using namespace std;
 
 FactoryOwner::FactoryOwner() {
   //instruction_factory_ = new InstructionFactoryARM;
-  instruction_factory_  = new InstructionFactoryISDF("thumb.isdf", &memory_);
+  //instruction_factory_  = new InstructionFactoryISDF("thumb.isdf", &memory_);
+  instruction_factory_  = new InstructionFactoryISDF("arm.isdf", &memory_);
   //instruction_factory_->InitRegisters(&memory_);
 }
 
@@ -48,7 +51,7 @@ bool FactoryOwner::HandleGetRequest(const std::vector<string>& argv, std::string
     File::ReadFileToString(kDataDirectory + argv[0], out);
   } else if(argv[0] == "Data" && argv.size() >= 2) {
     string filename = kDataDirectory + argv[1];
-    for(int i = 2; i < argv.size(); i++) filename += "\\" + argv[i];
+    for(int i = 2; i < argv.size(); i++) filename += "/" + argv[i];
     File::ReadFileToString(filename, out);
   } else
     (*out) += "<html><head><title>EDA</title></head><body><h1>Resource not found</h1></body></html>";
@@ -62,6 +65,9 @@ bool FactoryOwner::HandlePostRequest(const std::vector<string>& argv, std::strin
 
 // Read because a browser can't see these
 bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::string* out) {
+  if(argv.size() == 0)
+    return false;
+  JSON data;
   if(argv[0] == "Address" && argv.size() >= 2) {
     Address* a = memory_.ResolveToAddress(0, argv[1]);
     /*if(a != 0 && a->get_instruction() == NULL) {  // Auto-Disassembly
@@ -70,50 +76,41 @@ bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::strin
     }*/
     if (a != 0 && argv.size() >= 3) {
       if(argv[2] == "Name") {
-        (*out) += a->get_name();
+        data.add("Name", a->get_name());
       } else if(argv[2] == "Owned") {
-        ostringstream ss;
-        ss << kXMLHeader;
-        SerializeToXML(ss, memory_.history_.get_owned(a), "owned", "number");
-        (*out) += ss.str();
+        data.add("Owned", *(memory_.history_.get_owned(a)));
       } else if(argv[2] == "Xrefs") {
-        ostringstream ss;
-        ss << kXMLHeader;
-        SerializeToXML(ss, memory_.history_.get_xrefs(a), "xrefs", "number");
-        (*out) += ss.str();
+        data.add("Xrefs", *(memory_.history_.get_xrefs(a)));
       } else if(argv[2] == "Instruction") {
-        ostringstream ss;
-        ss << kXMLHeader;
         if(a->get_instruction() == NULL) {  // Auto-Disassembly
           instruction_factory_->Process(a);
           LOG(INFO) << "Disassembled";
         }
         if(a->get_instruction() != NULL && argv.size() >= 4) {
           if(argv[3]=="Parsed")
-            a->get_instruction()->parsed_->SerializeToXML(ss);
+            a->get_instruction()->parsed_->SerializeToJSON(&data);
           else if(argv[3] == "StatelessChangelist")
-            a->get_instruction()->change_->SerializeToXML(ss);
+            a->get_instruction()->change_->SerializeToJSON(&data);
         } else if(a->get_instruction() != NULL) {
-          a->get_instruction()->SerializeToXML(ss);
-        } else {
-          ss << "<failure></failure>";
+          a->get_instruction()->SerializeToJSON(&data);
         }
-        (*out) += ss.str();
       } else {
         return false;
       }
     } else if(a != 0) {
-      ostringstream ss;
+      /*ostringstream ss;
       ss << kXMLHeader;
       LOG(DEBUG) << "making xml";
       a->SerializeToXML(ss);
       LOG(DEBUG) << "done making xml";
-      (*out) += ss.str();
+      (*out) += ss.str();*/
+      a->SerializeToJSON(&data);
     } else {
       LOG(INFO) << "Address not found";
       return false;
     }
-  } else if(argv[0] == "Function" && argv.size() >= 2) {
+    (*out) = data.serialize();
+  } /*else if(argv[0] == "Function" && argv.size() >= 2) {
     Address* a = memory_.ResolveToAddress(0, argv[1]);
     if(a != NULL && a->get_instruction() != NULL) {
       set<Address*> addresses;
@@ -151,7 +148,7 @@ bool FactoryOwner::HandleReadRequest(const std::vector<string>& argv, std::strin
     ss << "<currentchangelistnumber>" << changelist_factory_.get_current_changelist_number() << "</currentchangelistnumber>";
     ss << "</State>";
     (*out) = ss.str();
-  } else if(argv[0] == "Memory" && argv.size() >= 4) {
+  }*/ else if(argv[0] == "Memory" && argv.size() >= 4) {
     // Dump memory raw
     Address* a = memory_.get_address_by_location(stoi(argv[1]));
     int len = stoi(argv[2]);
@@ -220,6 +217,7 @@ bool FactoryOwner::HandleStepRequest(const std::vector<string>& argv, std::strin
       }
     }
   }
+  return true;
 }
 
 

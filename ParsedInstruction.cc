@@ -8,11 +8,29 @@
 
 #include "data_memory.h"
 
+#include "JSON.h"
+
 #include <map>
 #include <string>
 
 using namespace std;
 using namespace eda;
+
+map<char, string> ParsedInstruction::web_lookup_;
+
+void ParsedInstruction::Init() {
+  if(web_lookup_.empty()) {
+    web_lookup_.insert(make_pair('O', "opcode"));
+    web_lookup_.insert(make_pair('o', "subopcode"));
+    web_lookup_.insert(make_pair('F', "flags"));
+    web_lookup_.insert(make_pair('C', "flags"));
+    web_lookup_.insert(make_pair('R', "register"));
+    web_lookup_.insert(make_pair('I', "immed"));
+    web_lookup_.insert(make_pair('S', "immed"));
+    web_lookup_.insert(make_pair('P', "location"));
+    web_lookup_.insert(make_pair('p', "immed"));
+  }
+}
 
 // O -- opcode
 // o -- subopcode
@@ -52,20 +70,8 @@ string ParsedInstruction::GetConsoleString() {
   return out;
 }
 
-map<char, string> ParsedInstruction::web_lookup_;
 
 void ParsedInstruction::SerializeToXML(ostringstream& out) {
-  if(web_lookup_.empty()) {
-    web_lookup_.insert(make_pair('O', "opcode"));
-    web_lookup_.insert(make_pair('o', "opcode"));
-    web_lookup_.insert(make_pair('F', "flags"));
-    web_lookup_.insert(make_pair('C', "flags"));
-    web_lookup_.insert(make_pair('R', "register"));
-    web_lookup_.insert(make_pair('I', "immed"));
-    web_lookup_.insert(make_pair('S', "immed"));
-    web_lookup_.insert(make_pair('P', "location"));
-    web_lookup_.insert(make_pair('p', "immed"));
-  }
   out << "<ParsedInstruction>";
   int vpos = 0;
   bool lastformatting = false;
@@ -108,4 +114,56 @@ void ParsedInstruction::SerializeToXML(ostringstream& out) {
   }
 
   out << "</ParsedInstruction>";
+}
+
+
+void ParsedInstruction::SerializeToJSON(JSON* json) {
+  vector<JSON> atoms;
+  int vpos = 0;
+  bool lastformatting = false;
+  string format = "";
+  for (int i = 0; i < format_.length(); i++) {
+    JSON atom;
+    map<char, string>::iterator it = web_lookup_.find(format_[i]);
+    if(it != web_lookup_.end()) {
+      if(lastformatting == true) {
+        JSON formatj;
+        formatj.add("type", "formatting");
+        formatj.add("data", format);
+        format = "";
+        atoms.push_back(formatj);
+        lastformatting = false;
+      }
+      if(vpos >= args_.size()) {
+        LOG(INFO) << "Error in parsed string \"" << format_ << "\" size is only " << args_.size();
+        break;
+      }
+      atom.add("type", it->second);
+      if(format_[i] == 'P') {
+        Address* target = parent_->memory_->ResolveToAddress(0, immed(parent_->get_location())+"+"+args_[vpos]);
+        if(target != NULL)
+          atom.add("data", target->get_name());
+        else
+          atom.add("data", parent_->memory_->ResolveToNumber(0, immed(parent_->get_location())+"+"+args_[vpos]));
+      } else {
+        atom.add("data", args_[vpos]);
+      }
+      atoms.push_back(atom);
+      vpos++;
+    }
+    else {
+      format += format_[i];
+      lastformatting = true;
+    }
+  }
+  if(lastformatting == true) {
+    JSON formatj;
+    formatj.add("type", "formatting");
+    formatj.add("data", format);
+    format = "";
+    atoms.push_back(formatj);
+    lastformatting = false;
+  }
+  
+  json->add("ParsedInstruction", atoms);
 }

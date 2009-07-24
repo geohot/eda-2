@@ -6,6 +6,8 @@
 #include "data.h"
 #include "util.h"
 
+#include "JSON.h"
+
 using namespace eda;
 using namespace std;
 
@@ -30,6 +32,17 @@ void Instruction::SerializeToXML(ostringstream& out) {
   }
   out << "</metadata>";
   out << "</Instruction>";
+}
+
+void Instruction::SerializeToJSON(JSON* json) {
+  JSON is;
+  parsed_->SerializeToJSON(&is);
+  change_->SerializeToJSON(&is);
+  is.add("input", FetchGAIsFromAddresses(control_inputs_));
+  is.add("output", FetchGAIsFromAddresses(control_outputs_));
+  is.add("input_indirect", FetchGAIsFromAddresses(control_indirect_inputs_));
+  is.add("input_indirect", FetchGAIsFromAddresses(control_indirect_outputs_));
+  json->add("Instruction", is);
 }
 
 void Instruction::GetFunction(set<Address*>* addresses) {

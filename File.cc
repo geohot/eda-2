@@ -33,7 +33,7 @@ bool File::ReadFileToString(const std::string& filename, std::string* data) {
   int size = ftell(f);
   fseek(f, 0, SEEK_SET);
   // There should be a faster way to do this, can I read to string.data()?
-  char* d = (char*)malloc(size);
+  char* d = new char[size];
   bool ret = false;
   if (fread(d, 1, size, f) == size) {
     ret = true;

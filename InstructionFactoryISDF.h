@@ -22,7 +22,8 @@ class InstructionComprehension;
 
 class InstructionFactoryISDF : public InstructionFactory {
 public:
-  InstructionFactoryISDF(string filename, Memory* m);
+  InstructionFactoryISDF(const string& filename, Memory* m);
+  bool LoadFromFile(const string& filename);
   Address* Process(Address* start);
 
   void StateToXML(std::ostringstream& out);
@@ -53,7 +54,7 @@ private:
 class InstructionComprehension {
 public:
   InstructionComprehension(const string& lines, InstructionFactoryISDF* ISDF);
-  void InstructionComprehension::AddLine(const string& linein);
+  void AddLine(const string& linein);
 
   // Addresses are NULL after read
   void InitRegisters(Memory *m);

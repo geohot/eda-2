@@ -1,0 +1,62 @@
+<html>
+<head>
+<style type="text/css">
+.codebox {
+	background-color: white;
+	-webkit-box-shadow: 4px 4px 4px gray;
+	border: 1px solid black;
+	padding-top: 2px;
+	padding-bottom: 2px;
+	padding-left: 4px;
+	padding-right: 4px;
+	color: navy;
+	width: auto;
+	font: 14px Lucida Console;
+  font-family: monospace;
+	display: inline-block;
+	vertical-align: top;
+}
+.ParsedInstruction {
+
+}
+.addresslocation {
+  width: 120px;
+  display: inline-block;
+  color: gray;
+}
+.opblock {
+  width: 60px;
+  display: inline-block;
+}
+.opcode {
+	color: navy;
+}
+.subopcode {
+  color: navy;
+}
+.flags {
+	color: purple;
+}
+.register {
+	color: #A03327;
+}
+.immed {
+	color: green;
+}
+.location {
+	color: gray;
+}
+.value {
+  width: 150px;
+  display: inline-block;
+  color: blue;
+}
+</style>
+<script src="eda_core.js"></script>
+<script src="eda_communication.js"></script>
+</head>
+<body onload="eda_init()">
+<!--hello revolution<br/>-->
+<div class="codebox" id="cb"></div>
+</body>
+</html>

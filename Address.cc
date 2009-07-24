@@ -7,8 +7,12 @@
 
 #include "util.h"
 
+#include "JSON.h"
+
 namespace eda {
 
+int Address::current_gai_ = 0;
+  
 void Address::Clear() {
   datamap_.clear();
   datamap_.insert(make_pair(0,0));
@@ -45,6 +49,53 @@ void Address::SerializeToXML(ostringstream& out) {
   out << "</Address>";
 }
 
+void Address::SerializeToJSON(JSON* json) {
+  JSON addr;
+  addr.add("gai", gai_);
+  addr.add("name", name_);
+  addr.add("size", size_);
+  addr.add("type", type_);
+  if(location_ != 0xFFFFFFFF) {
+    addr.add("location", location_);
+  }
+  // add values
+  vector<JSON> values;
+  for(map<int, uint8_t>::iterator it = datamap_.begin(); it != datamap_.end(); ++it) {
+    if(it->first != 0) {
+      uint32_t data = 0;
+      get(it->first, &data);
+      JSON value;
+      value.add("change", it->first);
+      value.add("data", data);
+      values.push_back(value);
+    }
+  }
+  addr.add("values", values);
+  if(instruction_ != NULL)
+    instruction_->SerializeToJSON(&addr);
+  json->add("Address", addr);
+}
+
+// Currently, the host system endianness must match the systems
+  
+Address* Address::get(int changelist_number, uint32_t* data) {
+  uint8_t* m = (uint8_t*)data;
+  Address* n = this;
+  for(int i = 0; i < size_; i++) {
+    n = n->get8(changelist_number, m+i);
+  }
+  return n;
+}
+  
+Address* Address::set(int changelist_number, uint32_t data) {
+  uint8_t* m = (uint8_t*)&data;
+  Address* n = this;
+  for(int i = 0; i < size_; i++) {
+    n = n->set8(changelist_number, m[i]);
+  }
+  return n;
+}
+  
 Address* Address::get8(int changelist_number, uint8_t* data) {
   if(changelist_number == 0)    // 0 is a link to the latest changelist
     (*data) = datamap_.rbegin()->second;
@@ -61,6 +112,8 @@ Address* Address::get16(int changelist_number, uint16_t* data) {
 }
 
 Address* Address::get32(int changelist_number, uint32_t* data) {
+  size_ = 4;
+  type_ = "data";
   uint8_t* m = (uint8_t*)data;
   Address* n;
   n = get8(changelist_number, m);
@@ -98,6 +151,7 @@ Address* Address::get_next() {
 
 bool Address::set_name(const string& name) {
   name_ = name;
+  return true;
 }
 
 const string& Address::get_name() {

@@ -10,6 +10,8 @@
 
 #include "data.h"
 
+#include "JSON.h"
+
 namespace eda {
 
 void Changelist::add_change(Address* target, uint8_t data) {
@@ -71,6 +73,14 @@ void Changelist::SerializeToXML(ostringstream& out) {
   }
   out << "</reads>";
   out << "</changelist>";
+}
+  
+void Changelist::SerializeToJSON(JSON* json) {
+  JSON cl;
+  cl.add("number", changelist_number_);
+  cl.add("owner", owner_->get_name());
+  vector<JSON> changes;
+  
 }
 
 }

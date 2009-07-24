@@ -30,7 +30,7 @@ void InstructionFactory::FastAnalyse(Memory* m, Address* start) {
 
 // Should be private
 void InstructionFactory::FastAnalyseRecurse(Memory* m, Address* location, Address* temp_program_counter, int* changelist_number) {
-  //LOG(INFO) << std::hex << "Recursing "  << location->get_location() << " on change " << (*changelist_number);
+  LOG(INFO) << std::hex << "Recursing 0x"  << location->get_location() << " on change " << (*changelist_number);
   Instruction* this_instruction = location->get_instruction();
   StatelessChangelistIterator change;
 // Find LR Stuff

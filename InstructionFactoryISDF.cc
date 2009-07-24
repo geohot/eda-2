@@ -17,11 +17,16 @@ using namespace std;
 using namespace eda;
 
 // Register parser goes here, not in InstructionComprehensions
-InstructionFactoryISDF::InstructionFactoryISDF(string filename, Memory* m) {
+InstructionFactoryISDF::InstructionFactoryISDF(const string& filename, Memory* m) {
+  memory_ = m;
+  LoadFromFile(filename);
+}
+
+bool InstructionFactoryISDF::LoadFromFile(const string& filename) {
   File::ReadFileToString(kBaseDirectory+filename, &store_);
+  LOG(INFO) << "loaded comprehension from " << filename;
   int i = 0;
   current_line_ = 1;
-  memory_ = m;
   InstructionComprehension* current = NULL;
   while(i < store_.length()) {
     int pos = store_.find_first_of('\n', i);
@@ -31,16 +36,20 @@ InstructionFactoryISDF::InstructionFactoryISDF(string filename, Memory* m) {
     i += (pos-i)+1;
     if(line.length() > 0 && line[0] != '#') {
       string first_word = line.substr(0, line.find_first_of(' ', 0));
+      //LOG(DEBUG) << "got first word (" << first_word << ")";
       if(first_word == "Registers") {
         vector<string> registers;
         StringSplit(' ', line, &registers);
         int size = stoi(registers[1])/8;
+        LOG(DEBUG) << "Got " << registers.size() << " registers of size " << size;
         for (int i = 2; i < registers.size(); i++) {
-          Address* this_address = m->AllocateSegment(registers[i], size);
+          LOG(DEBUG) << "  adding register " << registers[i];
+          Address* this_address = memory_->AllocateSegment(registers[i], size);
           this_address->set_size(size);
           registers_.push_back(make_pair(registers[i], this_address));
         }
       } else if(first_word == "DefaultChange") {
+        LOG(DEBUG) << "Got DefaultChange entry";
         // 0 is Change, 1 is bits, 2 is target, 3... is change
         vector<string> change;
         StringSplit(' ', line, &change);
@@ -50,28 +59,32 @@ InstructionFactoryISDF::InstructionFactoryISDF(string filename, Memory* m) {
         }
         default_changes_.insert(make_pair(change[2], make_pair(stoi(change[1]), changesource)));
       } else if(line[0] == '0' || line[0] == '1' || line[0] == '*' || (line[0] >= 'a' && line[0] <= 'z') ) {
+        LOG(DEBUG) << "Got comprehesion";
         if(current != NULL) instructioncomprehensions_.push_back(current);
         current = new InstructionComprehension(line, this);
       } else if(line.length() > 2 && line[0] == ' ' && line[1] == ' ' && current != NULL) {
+        LOG(DEBUG) << "Got comprehesion continuation";
         current->AddLine(line);
       } else if(first_word.length() > 0) {
+        LOG(DEBUG) << "Got first word";
         global_scope_.insert(make_pair(first_word, line.substr(first_word.length()+1)));
       } else {
         LOG(INFO) << "Unparsed line(" << current_line_ << "): " << line;
       }
     }
-    //LOG(INFO) << "parsed line " << current_line_;
+    LOG(DEBUG) << "parsed line (" << current_line_ << "): " << line;
     current_line_++;
   }
   if(current != NULL) instructioncomprehensions_.push_back(current);
   LOG(INFO) << "read " << current_line_ << " lines of comprehension";
-
+  
   map<char, uint32_t> psuedo_local_scope;
   program_counter_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{ProgramCounter}"));
   link_register_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{LinkRegister}"));
   stack_pointer_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{StackPointer}"));
   program_counter_offset_ = memory_->ResolveToNumber(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{ProgramCounterOffset}"));
-}
+  return true;
+}  
 
 void InstructionFactoryISDF::StateToXML(std::ostringstream& out) {
   out << std::hex;
@@ -181,7 +194,7 @@ InstructionComprehension::InstructionComprehension(const string& firstline, Inst
 void InstructionComprehension::AddLine(const string& linein) {
   string line = linein.substr(linein.find_first_not_of(' ', 0));
   string first_word = line.substr(0, line.find_first_of(' ', 0));
-  //LOG(INFO) << "Got word " << first_word << " at line " << parent_->current_line_;
+  LOG(DEBUG) << "Got word " << first_word << " at line " << parent_->current_line_;
   if(first_word ==  "Change") {
     // 0 is Change, 1 is bits, 2 is target, 3... is change
     vector<string> change;
@@ -195,7 +208,7 @@ void InstructionComprehension::AddLine(const string& linein) {
     int startquote = line.find_first_of('"',0);
     int endquote = line.find_first_of('"', startquote+1);
     parsed_format_ = line.substr(startquote+1, endquote-startquote-1);
-    //LOG(DEBUG) << "Read parsedata " << parsed_format_;
+    LOG(DEBUG) << "Read parsedata " << parsed_format_;
     if(line.length() > (endquote+2)) {
       StringSplit(' ', line.substr(endquote+2), &parsed_atoms_);
     }
@@ -216,14 +229,17 @@ void InstructionComprehension::AddLine(const string& linein) {
 
 bool InstructionComprehension::Execute(Address* opcode, map<string, string>* global_scope, StatelessChangelist* change, ParsedInstruction* parsed) {
   opcode->set_size(bitsize_/8);
+  opcode->type_ = "instruction";
   uint32_t data;
   opcode->get(0, &data);
+  
+  
   if( (data & mask_) != data_) {
     //LOG(DEBUG) << std::hex << "No match on data " << data << " with data " << data_ << " and mask " << mask_ << " and bitsize " << bitsize_;
     return false;
   }
 
-  LOG(INFO) << "Running comprehension at " << line_ << ": " << parent_->line_vector_debug_[line_-1] << " " << parent_->line_vector_debug_[line_-2];
+  LOG(INFO) << "Running comprehension at " << line_ << ": " << immed(data) << " " << parent_->line_vector_debug_[line_-1] << " " << parent_->line_vector_debug_[line_-2];
 
   map<char, uint32_t> local_scope;
 // Evaluate local scope
@@ -284,7 +300,7 @@ string InstructionFactoryISDF::EvalulateStringInScope(const map<string, string>&
   // Find {...} shit and replace it
   // {{...}} is registers
   // {|...|} is eval to hex number
-  //LOG(DEBUG) << "eval start: " << evalme;
+  LOG(DEBUG) << "eval start: " << evalme;
   string out = "";
   int p = 0;
   int last = 0;
@@ -307,7 +323,7 @@ string InstructionFactoryISDF::EvalulateStringInScope(const map<string, string>&
       }
     } else if(parsethis[1] == '|') {  // Hex
       string dataeval = EvalulateStringInScope(global_scope, local_scope, parsethis.substr(2, parsethis.length()-4) );
-      //LOG(DEBUG) << "  resolving: " << dataeval;
+      LOG(DEBUG) << "  resolving: " << dataeval;
       replace = immed(memory_->ResolveToNumber(0, dataeval));
     } else {
       string variable = parsethis.substr(1, parsethis.length()-2);
@@ -324,7 +340,7 @@ string InstructionFactoryISDF::EvalulateStringInScope(const map<string, string>&
         }
       }
     }
-    //LOG(DEBUG) << "  parsing \"" << parsethis << "\" to \"" << replace << "\"";
+    LOG(DEBUG) << "  parsing \"" << parsethis << "\" to \"" << replace << "\"";
     out += evalme.substr(last, p-last) + replace;
 
     p = close+1;

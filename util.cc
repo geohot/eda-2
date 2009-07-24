@@ -85,6 +85,14 @@ void eda::SerializeToXML(ostringstream& out, const vector<int>* v, string name, 
   out << "</" << name << ">";
 }
 
+vector<int> eda::FetchGAIsFromAddresses(const vector<Address*>& a) {
+  vector<int> ret;
+  for(vector<Address*>::const_iterator it = a.begin(); it != a.end(); ++it) {
+    ret.push_back((*it)->get_gai());
+  }
+  return ret;
+}
+
 void eda::StringSplit(const char* a, const string& in, vector<string>* argv) {
   size_t start=in.find_first_not_of(a,0);
   size_t end=in.find_first_of(a, start);
@@ -128,14 +136,14 @@ string eda::immed_signed(int32_t data) {
 eda::Logging::Logging(int level, const char* file, const char* pretty_function, const char* function, int line_number) {
   switch(level) {
     case 0:
-      stream_ << file << "(" << line_number << "): ";
+      std::cout << file << "(" << line_number << "): ";
       break;
     case 1:
     case 2:
-      stream_ << file << "(" << line_number << ")--" << pretty_function << ": ";
+      std::cout << file << "(" << line_number << ")--" << pretty_function << ": ";
       break;
     case DEBUG:
-      stream_ << "DEBUG: ";
+      std::cout << "DEBUG: ";
 
   }
 }

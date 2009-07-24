@@ -6,6 +6,10 @@
 // Haha, major props to whoever writes this
 
 
+#include "InstructionFactoryX86.h"
+
+using namespace eda;
+
 Address* InstructionFactoryX86::Process(Address* start) {
   return NULL;
 }

@@ -44,6 +44,7 @@ Address* Memory::AllocateSegment(const string& name, int length) {
 }
 
 vector<Address*>* Memory::AllocateSegment(int length) {
+  LOG(DEBUG) << "allocating segment of size " << length;
   vector<Address*>* ts = new vector<Address*>(length);
 
   for (int l = 0; l < length; l++) {

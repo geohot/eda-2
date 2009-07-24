@@ -43,6 +43,7 @@ public:
     length_(length) {}
   // This should have a destructor that destroys parsed_ and stateless_
   void SerializeToXML(std::ostringstream& out);
+  void SerializeToJSON(JSON* json);
 
   void GetFunction(std::set<Address*>* addresses);
 //private:
@@ -80,6 +81,10 @@ public:
 // Users are a very special case of Address,
 // They can submit changelists directly
 // Many methods don't have much signifance to them
+  
+// gai is Global Address Identifier
+// It is used to identify an address in the global EDA space
+  
 class Address {
 public:
   Address(Memory* memory) {
@@ -90,31 +95,18 @@ public:
     memory_ = memory;
     location_ = 0xFFFFFFFF;
     size_ = 1;
+    gai_ = current_gai_;
+    current_gai_++;
   }
   // Address accessor functions
   // All return pointer to address after last one got
   // NULL if said address doesn't exist
-  Address* get(int changelist_number, uint32_t* data) {
-    (*data) = 0;
-    switch(size_) {
-    case 1: return get8(changelist_number, (uint8_t*)data);
-    case 2: return get16(changelist_number, (uint16_t*)data);
-    case 4: return get32(changelist_number, data);
-    }
-    return NULL;
-  }
+  Address* get(int changelist_number, uint32_t* data);
   Address* get8(int changelist_number, uint8_t* data);
   Address* get16(int changelist_number, uint16_t* data);
   Address* get32(int changelist_number, uint32_t* data);
   // Address mutator functions are only to be called from commit
-  Address* set(int changelist_number, uint32_t data) {
-    switch(size_) {
-    case 1: return set8(changelist_number, (uint8_t)(data&0xFF));
-    case 2: return set16(changelist_number, (uint16_t)(data&0xFFFF));
-    case 4: return set32(changelist_number, data);
-    }
-    return NULL;
-  }
+  Address* set(int changelist_number, uint32_t data);
   Address* set8(int changelist_number, uint8_t data);
   Address* set16(int changelist_number, uint16_t data);
   Address* set32(int changelist_number, uint32_t data);
@@ -128,6 +120,7 @@ public:
   //Address* operator-- (Address*);
 
   void SerializeToXML(ostringstream& out);
+  void SerializeToJSON(JSON* json);
 
   // Names can't start with numbers, enforce this
   bool set_name(const string& name);
@@ -145,8 +138,15 @@ public:
   int get_size() { return size_; }
   void set_size(int size) { size_ = size; }
 
+  int get_gai() { return gai_; }
+  
+  string type_;   // what type of address is this? instruction? data?
+  
   Memory* memory_;  // The memory that created me
 private:
+  int gai_;
+  static int current_gai_;
+  
   uint32_t location_;
 
   // This is the DCB, DCW, DCD field

@@ -24,6 +24,7 @@ namespace eda {
 
 class Address;    // Can't actually call address
 
+class JSON;
 
 //                                           LHS     Condition    Bytes Value
 #define StatelessChangelistIterator map<pair<string, string>, pair<int, string> >::iterator
@@ -45,6 +46,7 @@ public:
   bool get_next_change(StatelessChangelistIterator* a);
   int get_size();
   void SerializeToXML(ostringstream& out);
+  void SerializeToJSON(JSON* json);
 //private:
   // int is bytecount, not bitcount
   map<pair<string, string>, pair<int, string> > changes_;
@@ -75,6 +77,7 @@ public:
   bool get_next_change(ChangelistIterator* a);
 
   void SerializeToXML(ostringstream& out);
+  void SerializeToJSON(JSON* json);
 private:
   // This is every change the changelist makes
   // Addresses are stored in their pointer form so no moving or renaming
@@ -99,12 +102,16 @@ public:
   // Should be like printf for strings
   ParsedInstruction() {
     format_ = "";
+    Init();
   }
   ParsedInstruction(Address* parent) : parent_(parent) {
     format_ = "";
+    Init();
   }
+  void Init();
   ParsedInstruction(const string& format, const vector<string>& args) : format_(format), args_(args) {}
   void SerializeToXML(ostringstream& out);
+  void SerializeToJSON(JSON* json);
   string GetConsoleString();
   string format_;
   vector<string> args_;

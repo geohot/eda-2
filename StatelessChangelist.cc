@@ -10,6 +10,8 @@
 
 #include <string>
 
+#include "JSON.h"
+
 using namespace std;
 
 using namespace eda;
@@ -47,4 +49,18 @@ void StatelessChangelist::SerializeToXML(ostringstream& out) {
     out << "</change>";
   }
   out << "</StatelessChangelist>";
+}
+
+
+void StatelessChangelist::SerializeToJSON(JSON* json) {
+  vector<JSON> ret;
+  for (StatelessChangelistIterator it = changes_.begin(); it != changes_.end(); ++it) {
+    ret.push_back(JSON());
+    ret.back().add("target", it->first.first);
+    ret.back().add("condition", it->first.second);
+    ret.back().add("bytes", it->second.first);
+    ret.back().add("value", it->second.second);
+    
+  }
+  json->add("StatelessChangelist", ret);
 }
