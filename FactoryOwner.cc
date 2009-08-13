@@ -169,7 +169,9 @@ bool FactoryOwner::HandleEvalRequest(const std::vector<string>& argv, std::strin
   if(argv.size() > 0) {
     ostringstream ss;
     ss << std::hex << memory_.ResolveToNumber(0, argv[0]);
-    (*out) = ss.str();
+    JSON ret;
+    ret.add("result", ss.str());
+    (*out) = ret.serialize();
   } else {
     return false;
   }
@@ -210,10 +212,14 @@ bool FactoryOwner::HandleStepRequest(const std::vector<string>& argv, std::strin
         LOG(DEBUG) << "changelist created";
         memory_.Commit(c);
 
-        ostringstream ss;
+        /*ostringstream ss;
         ss << kXMLHeader;
         c->SerializeToXML(ss);
-        (*out) = ss.str();
+        (*out) = ss.str();*/
+        
+        JSON ret;
+        c->SerializeToJSON(&ret);
+        (*out) = ret.serialize();
       }
     }
   }

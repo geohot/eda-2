@@ -296,7 +296,7 @@ DefaultChange 32 `PC` [`PC`]+4
 
 # Branch
 **** 1010 siiiiiiiiiiiiiiiiiiiiiii
-  TargetOffset ({i} << 2) - ({s} << 25)
-  Change 32 `PC` [`PC`] + {TargetOffset} + 8
-  Parsed "OFC P" B {FlagString} {ConditionString} {{d}} {|{TargetOffset}|}
+  TargetOffset ({i} << 2) - ({s} << 25) + 8
+  Change 32 `PC` [`PC`] + {TargetOffset}
+  Parsed "OFC P" B {FlagString} {ConditionString} {|{TargetOffset}|}
   Stop

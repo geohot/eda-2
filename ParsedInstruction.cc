@@ -126,6 +126,7 @@ void ParsedInstruction::SerializeToJSON(JSON* json) {
     JSON atom;
     map<char, string>::iterator it = web_lookup_.find(format_[i]);
     if(it != web_lookup_.end()) {
+      LOG(DEBUG) << "arg(" << vpos << "): " << args_[vpos];
       if(lastformatting == true) {
         JSON formatj;
         formatj.add("type", "formatting");
@@ -140,6 +141,7 @@ void ParsedInstruction::SerializeToJSON(JSON* json) {
       }
       atom.add("type", it->second);
       if(format_[i] == 'P') {
+        LOG(INFO) << "got location: " << immed(parent_->get_location()) << "+" << args_[vpos];
         Address* target = parent_->memory_->ResolveToAddress(0, immed(parent_->get_location())+"+"+args_[vpos]);
         if(target != NULL)
           atom.add("data", target->get_name());
@@ -163,6 +165,10 @@ void ParsedInstruction::SerializeToJSON(JSON* json) {
     format = "";
     atoms.push_back(formatj);
     lastformatting = false;
+  }
+  
+  if(vpos != args_.size()) {
+    LOG(WARNING) << "Not all args were used in " << format_ << " length was " << args_.size();
   }
   
   json->add("ParsedInstruction", atoms);
