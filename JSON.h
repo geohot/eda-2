@@ -6,6 +6,8 @@
 #ifndef EDA_JSON_H_
 #define EDA_JSON_H_
 
+#include "data_atomic.h"
+
 #include <vector>
 #include <string>
 #include <sstream>
@@ -29,10 +31,10 @@ public:
   // array and pointers(err maybe)
   //template <typename T>
   //void add(const string& name, const vector<T>& objects);
-  
+
   // output
   string serialize() const;
-  
+
 private:
   void preface(const string& name);
   string internal_;

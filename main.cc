@@ -53,23 +53,23 @@ void quitproc(int a) {
 
 int main(int argc, char* argv[]) {
   LOG(INFO) << "eda started";
-  
-  
+
+
   /*JSON test;
-  
+
   test.add("hello", 1);
   test.add("goodbye", "world");
-  
+
   vector<int> a;
   a.push_back(1);
   a.push_back(2);
-  
+
   test.add("arr", a);
-  
+
   LOG(INFO) << test.serialize();
-  
+
   return 0;*/
-  
+
   //LOG(INFO) << "Servlet constructed";
   FactoryOwner f;
   LOG(INFO) << "FactoryOwner constructed";
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
   LOG(INFO) << "exit signals registered";
   Address* me = f.memory_.AllocateSegment("me", 4);   // Create the `me` address, 4 is just to prevent crashing
 
-  
+
   LOG(INFO) << "me address allocated";
   /*Address* test = f.memory_.AllocateSegment("test", 8);
   test->set32(1, 0x465E);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
   f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x400008);
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
-  
+
   /*f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "0x400004"));
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "0x400008"));
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "0x40000C"));

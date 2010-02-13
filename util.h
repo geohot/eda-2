@@ -14,20 +14,24 @@
 #include <sstream>
 
 namespace eda {
-  
+
 class Address;
 
 const std::string kXMLHeader = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+
+// This should be read from a configuration file.
 #ifdef WIN32
 const std::string kDataDirectory = "..\\eda-2\\Data\\";
 #else
-const std::string kDataDirectory = "../../../eda-2/Data/";
+//const std::string kDataDirectory = "../../../eda-2/Data/";
+const std::string kDataDirectory = "../eda-2/Data/";
 #endif
 
 #ifdef WIN32
 const std::string kBaseDirectory = "..\\eda-2\\";
 #else
-const std::string kBaseDirectory = "../../../eda-2/";
+//const std::string kBaseDirectory = "../../../eda-2/";
+const std::string kBaseDirectory = "../eda-2/";
 #endif
 
 // Returns things like 9 and 0x4F
@@ -44,7 +48,7 @@ bool file_to_string(const std::string& filename, std::string* out);
 int find_matching(const std::string& s, int start, char open, char close);
 
 std::vector<int> FetchGAIsFromAddresses(const std::vector<Address*>& a);
-  
+
 void SerializeToXML(std::ostringstream& out, const std::vector<int>* v, std::string name, std::string item);
 
 void StringSplit(const char* a, const std::string& in, std::vector<std::string>* argv);

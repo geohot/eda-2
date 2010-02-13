@@ -21,6 +21,7 @@ SET(EDA_SRCS
 ./FactoryOwner.cc
 ./File.cc
 ./Instruction.cc
+./JSON.cc
 )
 #INCLUDE_DIRECTORIES(./include/)
 ADD_LIBRARY(eda_lib ${EDA_SRCS})

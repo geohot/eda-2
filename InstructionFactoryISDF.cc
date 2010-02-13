@@ -11,7 +11,7 @@
 #include <iostream>
 
 #include "debug.h"
-#include "file.h"
+#include "File.h"
 
 using namespace std;
 using namespace eda;
@@ -77,14 +77,14 @@ bool InstructionFactoryISDF::LoadFromFile(const string& filename) {
   }
   if(current != NULL) instructioncomprehensions_.push_back(current);
   LOG(INFO) << "read " << current_line_ << " lines of comprehension";
-  
+
   map<char, uint32_t> psuedo_local_scope;
   program_counter_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{ProgramCounter}"));
   link_register_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{LinkRegister}"));
   stack_pointer_ = memory_->ResolveToAddress(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{StackPointer}"));
   program_counter_offset_ = memory_->ResolveToNumber(0, EvalulateStringInScope(global_scope_, psuedo_local_scope, "{ProgramCounterOffset}"));
   return true;
-}  
+}
 
 void InstructionFactoryISDF::StateToXML(std::ostringstream& out) {
   out << std::hex;
@@ -232,8 +232,8 @@ bool InstructionComprehension::Execute(Address* opcode, map<string, string>* glo
   opcode->type_ = "instruction";
   uint32_t data;
   opcode->get(0, &data);
-  
-  
+
+
   if( (data & mask_) != data_) {
     //LOG(DEBUG) << std::hex << "No match on data " << data << " with data " << data_ << " and mask " << mask_ << " and bitsize " << bitsize_;
     return false;

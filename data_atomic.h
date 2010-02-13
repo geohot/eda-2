@@ -13,6 +13,12 @@
 #ifndef EDA_DATAATOMIC_H_
 #define EDA_DATAATOMIC_H_
 
+#ifdef __linux
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned int uint32_t;
+#endif
+
 #include <sstream>
 #include <string>
 #include <vector>

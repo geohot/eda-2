@@ -9,12 +9,6 @@
 #ifndef EDA_DATA_H_
 #define EDA_DATA_H_
 
-#ifdef __linux
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned int uint32_t;
-#endif
-
 #include <map>
 #include <set>
 
@@ -81,10 +75,10 @@ public:
 // Users are a very special case of Address,
 // They can submit changelists directly
 // Many methods don't have much signifance to them
-  
+
 // gai is Global Address Identifier
 // It is used to identify an address in the global EDA space
-  
+
 class Address {
 public:
   Address(Memory* memory) {
@@ -139,14 +133,14 @@ public:
   void set_size(int size) { size_ = size; }
 
   int get_gai() { return gai_; }
-  
+
   string type_;   // what type of address is this? instruction? data?
-  
+
   Memory* memory_;  // The memory that created me
 private:
   int gai_;
   static int current_gai_;
-  
+
   uint32_t location_;
 
   // This is the DCB, DCW, DCD field
