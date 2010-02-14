@@ -38,7 +38,8 @@ using namespace std;
 FactoryOwner::FactoryOwner() {
   //instruction_factory_ = new InstructionFactoryARM;
   //instruction_factory_  = new InstructionFactoryISDF("thumb.isdf", &memory_);
-  instruction_factory_  = new InstructionFactoryISDF("arm.isdf", &memory_);
+  //instruction_factory_  = new InstructionFactoryISDF("arm.isdf", &memory_);
+  instruction_factory_  = new InstructionFactoryISDF("spu.isdf", &memory_);
   //instruction_factory_->InitRegisters(&memory_);
 }
 
@@ -216,7 +217,7 @@ bool FactoryOwner::HandleStepRequest(const std::vector<string>& argv, std::strin
         ss << kXMLHeader;
         c->SerializeToXML(ss);
         (*out) = ss.str();*/
-        
+
         JSON ret;
         c->SerializeToJSON(&ret);
         (*out) = ret.serialize();

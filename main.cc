@@ -89,17 +89,19 @@ int main(int argc, char* argv[]) {
   a.Process(test);*/
 
 
-  load_file(&f.memory_, &f.changelist_factory_, me, "bootrom", 0x400000);
+  load_file(&f.memory_, &f.changelist_factory_, me, "appldr.text", 0x12C00);
+
+  //load_file(&f.memory_, &f.changelist_factory_, me, "bootrom", 0x400000);
   //load_file(&f.memory_, &f.changelist_factory_, me, "ibec.dfu", 0x18000000);
 
   //f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x1800F99C);
-  f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x400024);
+  /*f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x400024);
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
   f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x400020);
-  f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
+  f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));*/
   /*f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x40001C);
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));*/
-  f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x400018);
+  /*f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x400018);
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
   f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x400014);
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
@@ -108,7 +110,7 @@ int main(int argc, char* argv[]) {
   f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x40000C);
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
   f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x400008);
-  f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));
+  f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 8"));*/
 
   /*f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "0x400004"));
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "0x400008"));
@@ -119,12 +121,14 @@ int main(int argc, char* argv[]) {
   f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "0x40001C"));*/
   //f.instruction_factory_->FastAnalyse(&f.memory_, f.memory_.ResolveToAddress(0, "[`PC`] - 4"));
 
-  f.memory_.AllocateSegment(0, 0x40000);
+  /*f.memory_.AllocateSegment(0, 0x40000);
 
   f.memory_.ResolveToAddress(0,"`SP`")->set32(1, 0x10000);
 
   f.memory_.AllocateSegment(0xf4300000, 0x100);
-  f.memory_.AllocateSegment(0xf4400000, 0x100);
+  f.memory_.AllocateSegment(0xf4400000, 0x100);*/
+
+  f.memory_.ResolveToAddress(0,"`PC`")->set32(1, 0x12C00);
 
   s.RegisterCommandHandler("GET", &f, &FactoryOwner::HandleGetRequest);
   s.RegisterCommandHandler("EVAL", &f, &FactoryOwner::HandleEvalRequest);

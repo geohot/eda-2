@@ -35,9 +35,9 @@ function send_reg_request() {
 }
 
 function send_step_request() {
-  var ret2 = xx("READ", "/Address/[`PC`]-4/Instruction/Parsed", "");
+  var ret2 = xx("READ", "/Address/[`PC`]/Instruction/Parsed", "");
 
-  var ret = xx("STEP", "/Address/[`PC`]-4", "");
+  var ret = xx("STEP", "/Address/[`PC`]", "");
   document.getElementById("response").value = view_xml(ret.xml.documentElement, 0);
 
   document.getElementById("rendered").innerHTML += '<span class="address">'+ret.xml.getElementsByTagName("owner")[0].childNodes[0].nodeValue+": "+'</span>';

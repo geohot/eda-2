@@ -14,7 +14,7 @@
 }*/
 
 function eda_init() {
-  fetchAddress(0x400000);
+  fetchAddress(0x12C00);
 
   window.addEventListener("keypress", eventKeyHandler, false);
   window.addEventListener("mousedown", eventClickHandler, false);
